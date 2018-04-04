@@ -1,10 +1,11 @@
 package com.allcode.coupit.Coupit.repository;
 
 import com.allcode.coupit.Coupit.model.Session;
-import java.util.List;
+import com.allcode.coupit.Coupit.model.User;
 
-public interface SessionDAO {
-    void save(Session session);
-    List list();
+public interface CustomSessionRepository {
+
+    User getCurrentUser();
+
     Session findByToken(String token);
 }

@@ -1,14 +1,15 @@
 package com.allcode.coupit.Coupit.controller;
 
+import java.util.Optional;
 import java.util.UUID;
 import com.allcode.coupit.Coupit.handler.ConstraintViolationExceptionHandler;
 import com.allcode.coupit.Coupit.handler.ErrorResponse;
 import com.allcode.coupit.Coupit.model.Role;
 import com.allcode.coupit.Coupit.model.Session;
 import com.allcode.coupit.Coupit.model.User;
-import com.allcode.coupit.Coupit.service.RoleService;
-import com.allcode.coupit.Coupit.service.SessionService;
-import com.allcode.coupit.Coupit.service.UserService;
+import com.allcode.coupit.Coupit.repository.RoleRepository;
+import com.allcode.coupit.Coupit.repository.SessionRepository;
+import com.allcode.coupit.Coupit.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,20 +21,20 @@ import javax.validation.ConstraintViolationException;
 public class ApplicationController {
 
     @Autowired
-    private UserService userService;
+    private UserRepository userRepository;
 
     @Autowired
-    private RoleService roleService;
+    private RoleRepository roleRepository;
 
     @Autowired
-    private SessionService sessionService;
+    private SessionRepository sessionRepository;
 
     //-------------------Retrieve All Users--------------------------------------------------------
 
     @RequestMapping(value = "/login", method = RequestMethod.POST)
     public ResponseEntity<?> login(@RequestParam(value = "email") String email, @RequestParam(value = "password") String password) {
         String digestPassword = User.getDigestPassword(password);
-        User user = userService.findByEmailAndPassword(email, digestPassword);
+        User user = userRepository.findByEmailAndPassword(email, digestPassword);
         if(user == null){
             ErrorResponse error = new ErrorResponse("Authentication Error: Email Or Password incorrect");
             return new ResponseEntity<ErrorResponse>(error,HttpStatus.UNAUTHORIZED);//You many decide to return HttpStatus.NOT_FOUND
@@ -41,7 +42,7 @@ public class ApplicationController {
         String token = UUID.randomUUID().toString();
         Session session = new Session(user, token);
         try{
-            sessionService.save(session);
+            sessionRepository.save(session);
         }catch (ConstraintViolationException ex){
             return ConstraintViolationExceptionHandler.getResponse(ex);
         }
@@ -71,18 +72,19 @@ public class ApplicationController {
         }
 
 
-        User repeatUser = userService.findByEmail(email);
+        User repeatUser = userRepository.findByEmail(email);
         if (repeatUser != null) {
             ErrorResponse error = new ErrorResponse("the user " + email + " already exist");
             return new ResponseEntity<ErrorResponse>(error, HttpStatus.CONFLICT);
         }
 
-        Role role = roleService.findById(Role.CLIENT_ID);
+        Optional<Role> role = roleRepository.findById(Role.CLIENT_ID);
+
         String digestPassword = User.getDigestPassword(password);
-        User user = new User(firstName, lastName, email, digestPassword, role);
+        User user = new User(firstName, lastName, email, digestPassword, role.get());
 
         try{
-            userService.save(user);
+            userRepository.save(user);
         }catch (ConstraintViolationException ex){
             return ConstraintViolationExceptionHandler.getResponse(ex);
         }

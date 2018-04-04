@@ -84,7 +84,6 @@ public class User implements Serializable{
         }catch (NoSuchAlgorithmException ex){
             System.out.println("Error while encrypt password");
         }
-
         return null;
     }
 

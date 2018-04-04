@@ -1,13 +1,14 @@
 package com.allcode.coupit.Coupit.controller.rest;
 import java.util.List;
+import java.util.Optional;
 
 import com.allcode.coupit.Coupit.handler.ConstraintViolationExceptionHandler;
 import com.allcode.coupit.Coupit.handler.ErrorResponse;
 import com.allcode.coupit.Coupit.model.Role;
 import com.allcode.coupit.Coupit.model.User;
-import com.allcode.coupit.Coupit.service.RoleService;
-import com.allcode.coupit.Coupit.service.SessionService;
-import com.allcode.coupit.Coupit.service.UserService;
+import com.allcode.coupit.Coupit.repository.RoleRepository;
+import com.allcode.coupit.Coupit.repository.SessionRepository;
+import com.allcode.coupit.Coupit.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,34 +21,34 @@ import javax.validation.ConstraintViolationException;
 public class UserController {
 
     @Autowired
-    RoleService roleService;
+    RoleRepository roleRepository;
 
     @Autowired
-    UserService userService;
+    UserRepository userRepository;
 
     @Autowired
-    SessionService sessionService;
+    SessionRepository sessionRepository;
 
     @RequestMapping(method = RequestMethod.GET)
     public ResponseEntity<?> listAllUsers() {
-        List users = userService.list();
+        List<User> users = (List<User>) userRepository.findAll();
         if(users.size() == 0){
             ErrorResponse error = new ErrorResponse("Empty records");
             return new ResponseEntity<ErrorResponse>(error,HttpStatus.NOT_FOUND);
         }
-        return new ResponseEntity<List>(users, HttpStatus.OK);
+        return new ResponseEntity<Iterable>(users, HttpStatus.OK);
     }
 
     //-------------------Retrieve Single User--------------------------------------------------------
 
     @RequestMapping(value = "/{id}", method = RequestMethod.GET)
-    public ResponseEntity<?> getUser(@PathVariable("id") Integer id) {
-        User user = userService.findById(id);
-        if (user == null) {
+    public ResponseEntity<?> getUser(@PathVariable("id") long id) {
+        Optional<User> user = userRepository.findById(id);
+        if (user.equals(Optional.empty())) {
             ErrorResponse error = new ErrorResponse("User with id " + id + " not found");
             return new ResponseEntity<ErrorResponse>(error,HttpStatus.NOT_FOUND);
         }
-        return new ResponseEntity<User>(user, HttpStatus.OK);
+        return new ResponseEntity<User>(user.get(), HttpStatus.OK);
     }
 
 
@@ -61,7 +62,7 @@ public class UserController {
             @RequestParam String email,
             @RequestParam String password,
             @RequestParam String validatePassword,
-            @RequestParam Integer roleId,
+            @RequestParam Long roleId,
             @RequestParam(required = false) Integer clientId
     ) {
 
@@ -71,25 +72,25 @@ public class UserController {
         }
 
 
-        User repeatUser = userService.findByEmail(email);
+        User repeatUser = userRepository.findByEmail(email);
         if (repeatUser != null) {
             ErrorResponse error = new ErrorResponse("the user " + email + " already exist");
             return new ResponseEntity<ErrorResponse>(error, HttpStatus.CONFLICT);
         }
 
-        Role role = roleService.findById(roleId);
-        if (role == null) {
+        Optional<Role> role = roleRepository.findById(roleId);
+        if (role.equals(Optional.empty())) {
             ErrorResponse error = new ErrorResponse("the Role not exist");
             return new ResponseEntity<ErrorResponse>(error, HttpStatus.BAD_REQUEST);
         }
 
-        User currentUser = sessionService.getCurrentUser();
+        User currentUser = sessionRepository.getCurrentUser();
 
 
         String digestPassword = User.getDigestPassword(password);
-        User user = new User(firstName, lastName, email, digestPassword, role);
+        User user = new User(firstName, lastName, email, digestPassword, role.get());
         try{
-            userService.save(user);
+            userRepository.save(user);
         }catch (ConstraintViolationException ex){
             return ConstraintViolationExceptionHandler.getResponse(ex);
         }
@@ -101,24 +102,26 @@ public class UserController {
     //------------------- Update a User --------------------------------------------------------
 
     @RequestMapping(value = "/{id}", method = RequestMethod.PUT)
-    public ResponseEntity<?> updateUser(@PathVariable("id") Integer id,
+    public ResponseEntity<?> updateUser(@PathVariable("id") Long id,
            @RequestParam(required = false) String firstName,
            @RequestParam(required = false) String lastName,
            @RequestParam(required = false) String email) {
 
-        User currentUser = userService.findById(id);
+        Optional<User> user = userRepository.findById(id);
 
-        if (currentUser==null) {
+        if (user.equals(Optional.empty())) {
             ErrorResponse error = new ErrorResponse("User with id " + id + " not found");
             return new ResponseEntity<ErrorResponse>(error, HttpStatus.NOT_FOUND);
         }
+
+        User currentUser = user.get();
 
         if(firstName != null) currentUser.setFirstName(firstName);
         if(lastName != null) currentUser.setLastName(lastName);
         if(email != null) currentUser.setEmail(email);
 
         try{
-            userService.save(currentUser);
+            userRepository.save(currentUser);
         }catch (ConstraintViolationException ex){
             return ConstraintViolationExceptionHandler.getResponse(ex);
         }

@@ -1,7 +1,7 @@
 package com.allcode.coupit.Coupit.handler;
 
 import com.allcode.coupit.Coupit.model.Session;
-import com.allcode.coupit.Coupit.service.SessionService;
+import com.allcode.coupit.Coupit.repository.SessionRepository;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,9 +18,9 @@ import java.io.IOException;
 @EnableTransactionManagement
 public class ValidateSession extends GenericFilterBean {
 
-    public SessionService sessionService;
+    public SessionRepository sessionService;
 
-    public ValidateSession(SessionService sessionService) {
+    public ValidateSession(SessionRepository sessionService) {
         this.sessionService = sessionService;
     }
 

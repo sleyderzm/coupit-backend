@@ -12,9 +12,9 @@ import java.util.Set;
 @Table(name = "roles")
 public class Role implements Serializable{
 
-    public static final int ADMIN_ID = 1;
-    public static final int CLIENT_ID = 2;
-    public static final int SUBSCRIBER_ID = 3;
+    public static final long ADMIN_ID = 1;
+    public static final long CLIENT_ID = 2;
+    public static final long SUBSCRIBER_ID = 3;
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
