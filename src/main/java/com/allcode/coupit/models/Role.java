@@ -1,10 +1,8 @@
-package com.allcode.coupit.Coupit.model;
+package com.allcode.coupit.models;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
-import org.hibernate.validator.constraints.NotBlank;
+import javax.validation.constraints.NotBlank;
 import javax.persistence.*;
-import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.util.Set;
 
@@ -33,8 +31,7 @@ public class Role implements Serializable{
         this.name = name;
     }
 
-    public Role() {
-    }
+    public Role() { }
 
     public Integer getId() {
         return id;

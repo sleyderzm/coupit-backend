@@ -1,4 +1,4 @@
-package com.allcode.coupit.Coupit;
+package com.allcode.coupit;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;

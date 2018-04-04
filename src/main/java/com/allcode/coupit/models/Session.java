@@ -1,8 +1,7 @@
-package com.allcode.coupit.Coupit.model;
+package com.allcode.coupit.models;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
-import org.hibernate.validator.constraints.NotBlank;
+import javax.validation.constraints.NotBlank;
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import java.util.Date;
@@ -16,7 +15,6 @@ public class Session {
     @Column(name="id")
     private Integer id;
 
-
     @Column(name="token")
     @NotBlank
     private String token;
@@ -25,7 +23,6 @@ public class Session {
     @NotNull
     @Column(name="created_at", columnDefinition = "timestamptz")
     private Date createdAt;
-
 
     @JsonManagedReference
     @ManyToOne(fetch=FetchType.EAGER)
@@ -40,8 +37,7 @@ public class Session {
         this.createdAt = createdAt;
     }
 
-    public Session() {
-    }
+    public Session() { }
 
     public Session(User user, String token) {
         this.user = user;
