@@ -13,6 +13,8 @@ import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.JoinColumn;
 import javax.persistence.Column;
+import javax.persistence.CascadeType;
+import javax.persistence.UniqueConstraint;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Email;
@@ -21,9 +23,11 @@ import java.security.MessageDigest;
 import java.nio.charset.StandardCharsets;
 import java.security.NoSuchAlgorithmException;
 import java.util.Set;
+import java.util.HashSet;
+import java.util.Collection;
 
-@Entity // This tells Hibernate to make a table out of this class
-@Table(name = "users")
+@Entity
+@Table(name = "users", uniqueConstraints = @UniqueConstraint(columnNames = "email"))
 public class User implements Serializable {
     @Id
     @GeneratedValue(strategy=GenerationType.SEQUENCE)
@@ -49,7 +53,7 @@ public class User implements Serializable {
     private String password;
 
     @JsonManagedReference
-    @ManyToOne(fetch=FetchType.EAGER)
+    @ManyToOne(fetch=FetchType.EAGER,cascade=CascadeType.ALL)
     @JoinColumn(name="role_id")
     @NotNull
     private Role role;
@@ -93,6 +97,12 @@ public class User implements Serializable {
     public Role getRole() { return role; }
 
     public void setRole(Role role) { this.role = role; }
+
+    public Collection<Role> getRoles() {
+        Set<Role> roles = new HashSet<>();
+        roles.add(role);
+        return roles;
+    }
 
     public String getPassword() { return password; }
 
