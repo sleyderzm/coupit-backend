@@ -1,14 +1,20 @@
 package com.allcode.coupit.models;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import javax.persistence.*;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import java.io.Serializable;
+import java.util.Set;
 
 @Entity
 @Table(name = "merchants")
 public class Merchant implements Serializable {
+
+    public static final String PERSON_MERCHANT_TYPE = "PERSON";
+    public static final String PERSON_COMPANY_TYPE = "COMPANY";
+
     @Id
     @GeneratedValue(strategy=GenerationType.SEQUENCE)
     @Column(name="id")
@@ -32,6 +38,10 @@ public class Merchant implements Serializable {
     @NotNull
     private User user;
 
+    @JsonBackReference
+    @OneToMany(mappedBy="merchant",fetch = FetchType.LAZY)
+    private Set<Product> products;
+
     public Long getId() { return id; }
 
     public void setId(Long id) {
@@ -44,7 +54,7 @@ public class Merchant implements Serializable {
         this.merchantType = merchantType;
     }
 
-    public String setName() { return name; }
+    public String getName() { return name; }
 
     public void setName(String name) {
         this.name = name;
@@ -61,6 +71,14 @@ public class Merchant implements Serializable {
     public User getUser() { return user; }
 
     public void setUser(User user) { this.user = user; }
+
+    public Set<Product> getProducts() {
+        return products;
+    }
+
+    public void setProducts(Set<Product> products) {
+        this.products = products;
+    }
 
     public Merchant(String merchantType, String name, String websiteUrl, User user) {
         this.merchantType = merchantType;
