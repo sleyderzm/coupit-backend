@@ -11,8 +11,7 @@ import java.util.Set;
 public class Role implements Serializable{
 
     public static final long ADMIN_ID = 1;
-    public static final long CLIENT_ID = 2;
-    public static final long SUBSCRIBER_ID = 3;
+    public static final long USER_ID = 2;
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE)

@@ -60,7 +60,7 @@ public class User implements Serializable {
 
     @JsonBackReference
     @OneToMany(mappedBy="user",fetch = FetchType.LAZY)
-    private Set<Session> sessions;
+    private Set<Merchant> merchants;
 
     public Long getId() {
         return id;
@@ -97,6 +97,14 @@ public class User implements Serializable {
     public Role getRole() { return role; }
 
     public void setRole(Role role) { this.role = role; }
+
+    public Set<Merchant> getMerchants() {
+        return merchants;
+    }
+
+    public void setUsers(Set<Merchant> merchants) {
+        this.merchants = merchants;
+    }
 
     public Collection<Role> getRoles() {
         Set<Role> roles = new HashSet<>();
@@ -136,32 +144,7 @@ public class User implements Serializable {
     }
 
     @JsonBackReference
-    public boolean isClientRole() {
-        return (this.role != null) && (this.role.getId() == Role.CLIENT_ID);
-    }
-
-    public Set<Session> getSessions() {
-        return sessions;
-    }
-
-    public void setSessions(Set<Session> sessions) {
-        this.sessions = sessions;
-    }
-
-    public static String getDigestPassword (String password){
-        try{
-            MessageDigest digest = MessageDigest.getInstance("SHA-256");
-            byte[] hash = digest.digest(password.getBytes(StandardCharsets.UTF_8));
-            StringBuffer hexString = new StringBuffer();
-            for (int i = 0; i < hash.length; i++) {
-                String hex = Integer.toHexString(0xff & hash[i]);
-                if(hex.length() == 1) hexString.append('0');
-                hexString.append(hex);
-            }
-            return hexString.toString();
-        }catch (NoSuchAlgorithmException ex){
-            System.out.println("Error while encrypt password");
-        }
-        return null;
+    public boolean isUserRole() {
+        return (this.role != null) && (this.role.getId() == Role.USER_ID);
     }
 }
