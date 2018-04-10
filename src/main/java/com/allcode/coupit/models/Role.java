@@ -16,7 +16,7 @@ public class Role implements Serializable{
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
     @Column(name="id")
-    private Integer id;
+    private Long id;
 
     @Column(name="name")
     @NotBlank
@@ -32,11 +32,11 @@ public class Role implements Serializable{
 
     public Role() { }
 
-    public Integer getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(Integer id) {
+    public void setId(Long id) {
         this.id = id;
     }
 
