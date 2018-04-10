@@ -5,6 +5,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import com.allcode.coupit.models.Role;
 import com.allcode.coupit.models.User;
 import com.allcode.coupit.repositories.UserRepository;
+import com.allcode.coupit.repositories.RoleRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
@@ -19,14 +20,20 @@ public class CoupitApplication {
 	@Autowired
 	private UserRepository userRepository;
 
+	@Autowired
+	private RoleRepository roleRepository;
+
 	@PostConstruct
 	public void init(){
+		Role userRole = new Role("ROLE_ADMIN");
+		Role savedRole = roleRepository.save(userRole);
 		User user = new User(
 				"Admin",
 				"Coupit",
 				"admin@coupit.com",
 				passwordEncoder.encode("password"),
-				new Role("ROLE_ADMIN"));
+				savedRole
+				);
 
 		if (userRepository.findByEmail(user.getEmail()) == null){
 			userRepository.save(user);

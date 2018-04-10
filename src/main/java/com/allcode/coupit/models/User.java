@@ -13,7 +13,6 @@ import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.JoinColumn;
 import javax.persistence.Column;
-import javax.persistence.CascadeType;
 import javax.persistence.UniqueConstraint;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.NotBlank;
@@ -53,7 +52,7 @@ public class User implements Serializable {
     private String password;
 
     @JsonManagedReference
-    @ManyToOne(fetch=FetchType.EAGER,cascade=CascadeType.ALL)
+    @ManyToOne(fetch=FetchType.EAGER)
     @JoinColumn(name="role_id")
     @NotNull
     private Role role;

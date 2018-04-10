@@ -33,7 +33,7 @@ public class Merchant implements Serializable {
     private String websiteUrl;
 
     @JsonManagedReference
-    @ManyToOne(fetch=FetchType.EAGER,cascade=CascadeType.ALL)
+    @ManyToOne(fetch=FetchType.EAGER)
     @JoinColumn(name="user_id")
     @NotNull
     private User user;

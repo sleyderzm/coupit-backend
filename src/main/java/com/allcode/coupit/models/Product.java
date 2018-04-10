@@ -29,7 +29,7 @@ public class Product implements Serializable {
     private String description;
 
     @JsonManagedReference
-    @ManyToOne(fetch=FetchType.EAGER,cascade=CascadeType.ALL)
+    @ManyToOne(fetch=FetchType.EAGER)
     @JoinColumn(name="merchant_id")
     @NotNull
     private Merchant merchant;

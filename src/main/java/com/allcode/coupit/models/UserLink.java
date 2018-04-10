@@ -19,13 +19,13 @@ public class UserLink implements Serializable {
     private String uid;
 
     @JsonManagedReference
-    @ManyToOne(fetch=FetchType.EAGER,cascade=CascadeType.ALL)
+    @ManyToOne(fetch=FetchType.EAGER)
     @JoinColumn(name="product_id")
     @NotNull
     private Product product;
 
     @JsonManagedReference
-    @ManyToOne(fetch=FetchType.EAGER,cascade=CascadeType.ALL)
+    @ManyToOne(fetch=FetchType.EAGER)
     @JoinColumn(name="user_id")
     @NotNull
     private User user;
