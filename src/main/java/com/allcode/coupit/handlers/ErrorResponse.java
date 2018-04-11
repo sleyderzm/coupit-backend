@@ -15,16 +15,19 @@ public class ErrorResponse {
         this.timestamp = simpleDateFormat.format(new Timestamp(System.currentTimeMillis()));
     }
 
-    public ErrorResponse(){
-    }
+    public ErrorResponse(){ }
 
     public String getMessage() {
         return message;
     }
 
-    public void setMessage(String message) {
-        this.message = message;
-    }
+    public String getTimestamp(){ return timestamp; }
+
+    public String getError(){ return error; }
+
+    public int getStatus(){ return status; }
+
+    public void setMessage(String message) { this.message = message; }
 
     @Override
     public String toString() {

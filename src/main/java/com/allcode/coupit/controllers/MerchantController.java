@@ -2,7 +2,6 @@ package com.allcode.coupit.controllers;
 
 import com.allcode.coupit.handlers.ErrorResponse;
 import com.allcode.coupit.models.Merchant;
-import com.allcode.coupit.models.Role;
 import com.allcode.coupit.models.User;
 import com.allcode.coupit.repositories.MerchantRepository;
 import com.allcode.coupit.repositories.UserRepository;
@@ -12,7 +11,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -33,7 +31,7 @@ public class MerchantController {
     public Iterable<Merchant> getMerchants(){ return merchantRepository.findAll(); }
 
     @PostMapping(consumes=MediaType.APPLICATION_JSON_VALUE, produces=MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<?> createUser(@RequestBody String json) {
+    public ResponseEntity<?> createMerchant(@RequestBody String json) {
         // Post Params
         JSONObject request = new JSONObject(json);
         long userId = request.getLong("user_id");
@@ -70,7 +68,6 @@ public class MerchantController {
 
         final Pattern valid_url_regex =
                 Pattern.compile("^(http://|https://)?(www.)?([a-zA-Z0-9]+).[a-zA-Z0-9]*.[a-z]{3}.?([a-z]+)?$");
-
 
         if(Arrays.asList(fieldsToValidate).contains("merchantType")) {
             if(merchantType.equals(null) || merchantType.equals("")){ errors.add("Merchant Type can not be empty"); }

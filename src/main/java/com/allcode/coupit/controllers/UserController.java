@@ -147,7 +147,6 @@ public class UserController {
         }
         catch (Exception ex){ if(Arrays.asList(fieldsToValidate).contains("id")){ errors.add("User not exists"); } }
 
-
         try{
             Role userRole = roleRepository.findById(roleId).get();
             if (userRole.equals(null) && Arrays.asList(fieldsToValidate).contains("roleId")){

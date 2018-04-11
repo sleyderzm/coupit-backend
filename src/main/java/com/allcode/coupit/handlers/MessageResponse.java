@@ -13,8 +13,7 @@ public class MessageResponse {
         this.timestamp = simpleDateFormat.format(new Timestamp(System.currentTimeMillis()));
     }
 
-    public MessageResponse(){
-    }
+    public MessageResponse(){ }
 
     public String getMessage() {
         return message;
@@ -23,6 +22,8 @@ public class MessageResponse {
     public void setMessage(String message) {
         this.message = message;
     }
+
+    public String getTimestamp(){ return timestamp; }
 
     @Override
     public String toString() {

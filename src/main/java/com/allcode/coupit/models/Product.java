@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import javax.persistence.*;
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.util.Set;
@@ -21,7 +22,6 @@ public class Product implements Serializable {
     private String name;
 
     @Column(name="price")
-    @NotBlank
     private double price;
 
     @Column(name="description",columnDefinition = "TEXT")
