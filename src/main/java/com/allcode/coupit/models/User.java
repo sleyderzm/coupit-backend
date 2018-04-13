@@ -63,6 +63,10 @@ public class User implements Serializable {
 
     @JsonBackReference
     @OneToMany(mappedBy="user",fetch = FetchType.LAZY)
+    private Set<Account> accounts;
+
+    @JsonBackReference
+    @OneToMany(mappedBy="user",fetch = FetchType.LAZY)
     private Set<UserLink> userLinks;
 
     public Long getId() {
@@ -115,6 +119,14 @@ public class User implements Serializable {
 
     public void setUserLinks(Set<UserLink> userLinks) {
         this.userLinks = userLinks;
+    }
+
+    public Set<Account> getAccounts() {
+        return accounts;
+    }
+
+    public void setAccounts(Set<Account> accounts) {
+        this.accounts = accounts;
     }
 
     public Collection<Role> getRoles() {

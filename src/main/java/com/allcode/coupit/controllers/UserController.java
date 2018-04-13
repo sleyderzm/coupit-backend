@@ -1,16 +1,27 @@
 package com.allcode.coupit.controllers;
 
+import com.allcode.coupit.handlers.CryptUtils;
+import com.allcode.coupit.models.Account;
 import com.allcode.coupit.models.Role;
 import com.allcode.coupit.models.User;
 import com.allcode.coupit.repositories.UserRepository;
 import com.allcode.coupit.repositories.RoleRepository;
+import com.allcode.coupit.repositories.AccountRepository;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
 import com.allcode.coupit.handlers.ErrorResponse;
 import com.allcode.coupit.handlers.MessageResponse;
+import com.allcode.coupit.handlers.MiddlewareRequest;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import java.util.List;
 import java.util.ArrayList;
@@ -32,6 +43,8 @@ public class UserController {
     @Autowired
     private BCryptPasswordEncoder passwordEncoder;
 
+    @Autowired
+    private AccountRepository accountRepository;
 
     @GetMapping(produces=MediaType.APPLICATION_JSON_VALUE)
     public Iterable<User> getUsers(){ return userRepository.findAll(); }
@@ -46,23 +59,36 @@ public class UserController {
         String email = request.getString("email");
         String password = request.getString("password");
         String repeatPassword = request.getString("repeat_password");
-
         String[] fieldsToValidate = new String[] { "email","password", "roleId", "fisrtName", "lastName" };
         Long id = new Long(0);
         List<String> errors = this.validateUser(id, roleId, firstName, lastName, email, password, repeatPassword, fieldsToValidate);
         if(errors.size() == 0){
             Role userRole = roleRepository.findById(roleId).get();
-
             User user = new User(firstName, lastName, email, passwordEncoder.encode(password), userRole);
-            User savedUser = userRepository.save(user) ;
-
+            User savedUser = userRepository.save(user);
             if(savedUser.getId().equals(null))
             {
                 ErrorResponse error = new ErrorResponse("Error when saving the user");
                 return new ResponseEntity<ErrorResponse>(error, HttpStatus.BAD_REQUEST);
             }
             else{
-                return new ResponseEntity<User>(savedUser, HttpStatus.CREATED);
+                String key = System.getenv("PASSPHRASE_VALUE");
+                JSONObject middlewareRequest = new MiddlewareRequest().post("/wallet/new", new ArrayList<>());
+                Account account = new Account(
+                        CryptUtils.encrypt(middlewareRequest.getString("address"), key),
+                        CryptUtils.encrypt(middlewareRequest.getString("public_key"), key),
+                        CryptUtils.encrypt(middlewareRequest.getString("private_key"), key),
+                        savedUser
+                );
+                Account savedAccount = accountRepository.save(account);
+                if(savedAccount.getId().equals(null)){
+                    userRepository.delete(savedUser);
+                    ErrorResponse errorResponse = new ErrorResponse("Error when saving the account");
+                    return new ResponseEntity<ErrorResponse>(errorResponse, HttpStatus.BAD_REQUEST);
+                }
+                else{
+                    return new ResponseEntity<User>(savedUser, HttpStatus.CREATED);
+                }
             }
         }
         else{
