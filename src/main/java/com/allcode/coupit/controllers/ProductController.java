@@ -1,9 +1,11 @@
 package com.allcode.coupit.controllers;
 
 import com.allcode.coupit.handlers.ErrorResponse;
+import com.allcode.coupit.models.Currency;
 import com.allcode.coupit.models.Merchant;
 import com.allcode.coupit.models.Product;
 import com.allcode.coupit.models.User;
+import com.allcode.coupit.repositories.CurrencyRepository;
 import com.allcode.coupit.repositories.MerchantRepository;
 import com.allcode.coupit.repositories.ProductRepository;
 import com.allcode.coupit.repositories.UserRepository;
@@ -39,22 +41,27 @@ public class ProductController {
     @Autowired
     private MerchantRepository merchantRepository;
 
+    @Autowired
+    private CurrencyRepository currencyRepository;
+
     @PostMapping(consumes=MediaType.APPLICATION_JSON_VALUE, produces=MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> createProduct(@RequestBody String json) {
         // Post Params
         JSONObject request = new JSONObject(json);
         long merchantId = request.getLong("merchant_id");
+        long currencyId = request.getLong("currency_id");
         String name = request.getString("name");
         String description = request.getString("description");
         double price = request.getDouble("price");
 
-        String[] fieldsToValidate = new String[] { "merchantId", "name", "description", "price" };
+        String[] fieldsToValidate = new String[] { "merchantId", "name", "description", "price", "currencyId" };
         Long id = new Long(0);
-        List<String> errors = this.validateProduct(id, merchantId, name, description, price, fieldsToValidate);
+        List<String> errors = this.validateProduct(id, merchantId, name, description, price, currencyId, fieldsToValidate);
         if(errors.size() == 0){
             Merchant merchant = merchantRepository.findById(merchantId).get();
+            Currency currency = currencyRepository.findById(currencyId).get();
 
-            Product product = new Product(name, price, description, merchant);
+            Product product = new Product(name, price, description, merchant, currency);
             Product savedProduct = productRepository.save(product) ;
 
             if(savedProduct.getId().equals(null))
@@ -72,7 +79,7 @@ public class ProductController {
         }
     }
 
-    private List<String> validateProduct(long id, long merchantId, String name, String description, double price, String[] fieldsToValidate){
+    private List<String> validateProduct(long id, long merchantId, String name, String description, double price, long currencyId, String[] fieldsToValidate){
         List<String> errors = new ArrayList<>();
 
         if(Arrays.asList(fieldsToValidate).contains("name")) {
@@ -94,6 +101,14 @@ public class ProductController {
             }
         }
         catch (Exception ex){ if(Arrays.asList(fieldsToValidate).contains("merchantId")){ errors.add("Merchant not exists"); } }
+
+        try{
+            Currency currency = currencyRepository.findById(currencyId).get();
+            if (currency.equals(null) && Arrays.asList(fieldsToValidate).contains("currencyId")){
+                errors.add("Currency not exists");
+            }
+        }
+        catch (Exception ex){ if(Arrays.asList(fieldsToValidate).contains("currencyId")){ errors.add("Currency not exists"); } }
 
         return errors;
     }

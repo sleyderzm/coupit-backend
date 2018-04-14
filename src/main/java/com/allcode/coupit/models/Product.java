@@ -34,6 +34,11 @@ public class Product implements Serializable {
     @NotNull
     private Merchant merchant;
 
+    @JsonManagedReference
+    @ManyToOne(fetch=FetchType.EAGER)
+    @JoinColumn(name="currency_id")
+    private Currency currency;
+
     @JsonBackReference
     @OneToMany(mappedBy="product",fetch = FetchType.LAZY)
     private Set<UserLink> userLinks;
@@ -72,11 +77,20 @@ public class Product implements Serializable {
         this.userLinks = userLinks;
     }
 
-    public Product(String name, double price, String description, Merchant merchant) {
+    public Currency getCurrency() {
+        return currency;
+    }
+
+    public void setCurrency(Currency currency) {
+        this.currency = currency;
+    }
+
+    public Product(String name, double price, String description, Merchant merchant, Currency currency) {
         this.price = price;
         this.name = name;
         this.description = description;
         this.merchant = merchant;
+        this.currency = currency;
     }
 
     public Product() { }

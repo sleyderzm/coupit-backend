@@ -1,5 +1,7 @@
 package com.allcode.coupit;
 
+import com.allcode.coupit.models.Blockchain;
+import com.allcode.coupit.repositories.BlockchainRepository;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import com.allcode.coupit.models.Role;
@@ -21,6 +23,9 @@ public class CoupitApplication {
 	private UserRepository userRepository;
 
 	@Autowired
+	private BlockchainRepository blockchainRepository;
+
+	@Autowired
 	private RoleRepository roleRepository;
 
 	@PostConstruct
@@ -37,6 +42,11 @@ public class CoupitApplication {
 
 		if (userRepository.findByEmail(user.getEmail()) == null){
 			userRepository.save(user);
+		}
+
+		if(blockchainRepository.findByName(Blockchain.NEO) == null){
+			Blockchain blockchain = new Blockchain(Blockchain.NEO);
+			blockchainRepository.save(blockchain);
 		}
 	}
 
