@@ -1,10 +1,12 @@
 package com.allcode.coupit.models;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import javax.persistence.*;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import java.io.Serializable;
+import java.util.Set;
 
 @Entity
 @Table(name = "user_links")
@@ -29,6 +31,10 @@ public class UserLink implements Serializable {
     @JoinColumn(name="user_id")
     @NotNull
     private User user;
+
+    @JsonBackReference
+    @OneToMany(mappedBy="userLink",fetch = FetchType.LAZY)
+    private Set<Purchase> purchases;
 
     public Long getId() { return id; }
 

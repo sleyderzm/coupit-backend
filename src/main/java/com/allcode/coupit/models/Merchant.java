@@ -42,6 +42,10 @@ public class Merchant implements Serializable {
     @OneToMany(mappedBy="merchant",fetch = FetchType.LAZY)
     private Set<Product> products;
 
+    @JsonBackReference
+    @OneToMany(mappedBy="merchant",fetch = FetchType.LAZY)
+    private Set<Purchase> purchases;
+
     public Long getId() { return id; }
 
     public void setId(Long id) {
