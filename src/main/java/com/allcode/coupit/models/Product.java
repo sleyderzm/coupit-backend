@@ -1,6 +1,8 @@
 package com.allcode.coupit.models;
 
+import com.allcode.coupit.handlers.Utils;
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import javax.persistence.*;
 import javax.validation.constraints.NotBlank;
@@ -21,8 +23,9 @@ public class Product implements Serializable {
     @NotBlank
     private String name;
 
+    @JsonIgnore
     @Column(name="price")
-    private double price;
+    private Long priceLong;
 
     @Column(name="description",columnDefinition = "TEXT")
     @NotBlank
@@ -33,6 +36,10 @@ public class Product implements Serializable {
     @JoinColumn(name="merchant_id")
     @NotNull
     private Merchant merchant;
+
+    @Transient
+    private Double price;
+
 
     @JsonManagedReference
     @ManyToOne(fetch=FetchType.EAGER)
@@ -57,11 +64,27 @@ public class Product implements Serializable {
 
     public void setName(String name) { this.name = name; }
 
-    public double getPrice() {
+    public Double getPrice() {
+        if(this.price == null){
+            if(this.priceLong == null) return null;
+            this.price = Utils.priceToDouble(this.priceLong, this.currency);
+        }
         return price;
     }
 
-    public void setPrice(double price) { this.price = price; }
+    public void setPrice(Double price) {
+        this.price = price;
+        this.priceLong = Utils.priceToLong(this.price, this.currency);
+    }
+
+    public Long getPriceLong() {
+        return priceLong;
+    }
+
+    public void setPriceLong(Long priceLong) {
+        this.priceLong = priceLong;
+        this.price = Utils.priceToDouble(this.priceLong, this.currency);
+    }
 
     public String getDescription() {
         return description;
@@ -89,12 +112,13 @@ public class Product implements Serializable {
         this.currency = currency;
     }
 
-    public Product(String name, double price, String description, Merchant merchant, Currency currency) {
+    public Product(String name, Double price, String description, Merchant merchant, Currency currency) {
         this.price = price;
         this.name = name;
         this.description = description;
         this.merchant = merchant;
         this.currency = currency;
+        this.priceLong = Utils.priceToLong(this.price, this.currency);
     }
 
     public Product() { }

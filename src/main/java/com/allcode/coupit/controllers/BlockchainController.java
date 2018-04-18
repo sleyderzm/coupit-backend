@@ -55,7 +55,7 @@ public class BlockchainController {
         Blockchain blockchain = new Blockchain(name);
         Blockchain savedBlockchain = blockchainRepository.save(blockchain);
 
-        if(savedBlockchain.getId().equals(null)) {
+        if(savedBlockchain.getId() == null) {
             ErrorResponse error = new ErrorResponse("Error when saving the blockchain");
             return new ResponseEntity<ErrorResponse>(error, HttpStatus.BAD_REQUEST);
         }
@@ -116,13 +116,13 @@ public class BlockchainController {
         List<String> errors = new ArrayList<>();
 
         if(Arrays.asList(fieldsToValidate).contains("name")) {
-            if(name.equals(null) || name.equals("")){ errors.add("Name can not be empty"); }
+            if(name == null || name.equals("")){ errors.add("Name can not be empty"); }
         }
 
         if(Arrays.asList(fieldsToValidate).contains("id")) {
             try{
                 Blockchain blockchain = blockchainRepository.findById(id).get();
-                if (blockchain.equals(null)){
+                if (blockchain == null){
                     errors.add("Blockchain not exists");
                 }
             }catch (Exception ex){  errors.add("Blockchain not exists"); }

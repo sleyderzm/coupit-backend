@@ -51,6 +51,10 @@ public class Currency {
     @OneToMany(mappedBy="currency",fetch = FetchType.LAZY)
     private Set<Purchase> purchases;
 
+    @JsonBackReference
+    @OneToMany(mappedBy="currency",fetch = FetchType.LAZY)
+    private Set<Transaction> transactions;
+
     public Currency(@NotBlank String name, @NotNull Integer decimals, @NotBlank String contractAddress, @NotBlank String hash, @NotBlank String symbol, @NotNull Blockchain blockchain) {
         this.name = name;
         this.decimals = decimals;

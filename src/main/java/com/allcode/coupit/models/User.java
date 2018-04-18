@@ -73,6 +73,10 @@ public class User implements Serializable {
     @OneToMany(mappedBy="user",fetch = FetchType.LAZY)
     private Set<Purchase> purchases;
 
+    @JsonBackReference
+    @OneToMany(mappedBy="user",fetch = FetchType.LAZY)
+    private Set<Transaction> transactions;
+
     public Long getId() {
         return id;
     }

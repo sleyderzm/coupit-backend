@@ -48,7 +48,7 @@ public class MerchantController {
             Merchant merchant = new Merchant(merchantType, name, websiteUrl, user);
             Merchant savedMerchant = merchantRepository.save(merchant) ;
 
-            if(savedMerchant.getId().equals(null))
+            if(savedMerchant.getId() == null)
             {
                 ErrorResponse error = new ErrorResponse("Error when saving the merchant");
                 return new ResponseEntity<ErrorResponse>(error, HttpStatus.BAD_REQUEST);
@@ -70,24 +70,24 @@ public class MerchantController {
                 Pattern.compile("^(http://|https://)?(www.)?([a-zA-Z0-9]+).[a-zA-Z0-9]*.[a-z]{3}.?([a-z]+)?$");
 
         if(Arrays.asList(fieldsToValidate).contains("merchantType")) {
-            if(merchantType.equals(null) || merchantType.equals("")){ errors.add("Merchant Type can not be empty"); }
+            if(merchantType == null || merchantType.equals("")){ errors.add("Merchant Type can not be empty"); }
             else if(! Merchant.PERSON_COMPANY_TYPE.equals(merchantType)
                     && ! Merchant.PERSON_MERCHANT_TYPE.equals(merchantType)){ errors.add("Merchant Type is not valid"); }
         }
 
         if(Arrays.asList(fieldsToValidate).contains("name")) {
-            if(name.equals(null) || name.equals("")){ errors.add("Name can not be empty"); }
+            if(name == null || name.equals("")){ errors.add("Name can not be empty"); }
         }
 
         if(Arrays.asList(fieldsToValidate).contains("websiteUrl")) {
             Matcher matcher = valid_url_regex.matcher(websiteUrl);
-            if(websiteUrl.equals(null) || websiteUrl.equals("")){ errors.add("Website Url can not be empty"); }
+            if(websiteUrl == null || websiteUrl.equals("")){ errors.add("Website Url can not be empty"); }
             else if(! matcher.find()){ errors.add("Website Url is not valid"); }
         }
 
         try{
             User user = userRepository.findById(userId).get();
-            if (user.equals(null) && Arrays.asList(fieldsToValidate).contains("userId")){
+            if (user == null && Arrays.asList(fieldsToValidate).contains("userId")){
                 errors.add("User not exists");
             }
         }

@@ -51,7 +51,7 @@ public class UserLinkController {
             UserLink userLink = new UserLink(uid, user, product);
             UserLink savedUserLink = userLinkRepository.save(userLink) ;
 
-            if(savedUserLink.getId().equals(null))
+            if(savedUserLink.getId() == null)
             {
                 ErrorResponse error = new ErrorResponse("Error when saving the product");
                 return new ResponseEntity<ErrorResponse>(error, HttpStatus.BAD_REQUEST);
@@ -72,7 +72,7 @@ public class UserLinkController {
 
         try{
             User user = userRepository.findById(userId).get();
-            if (user.equals(null) && Arrays.asList(fieldsToValidate).contains("userId")){
+            if (user == null && Arrays.asList(fieldsToValidate).contains("userId")){
                 errors.add("User not exists");
             }
         }
@@ -80,7 +80,7 @@ public class UserLinkController {
 
         try{
             Product product = productRepository.findById(productId).get();
-            if (product.equals(null) && Arrays.asList(fieldsToValidate).contains("productId")){
+            if (product == null && Arrays.asList(fieldsToValidate).contains("productId")){
                 errors.add("Product not exists");
             }
         }

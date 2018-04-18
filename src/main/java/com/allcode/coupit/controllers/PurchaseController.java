@@ -2,10 +2,9 @@ package com.allcode.coupit.controllers;
 
 import com.allcode.coupit.handlers.ErrorResponse;
 import com.allcode.coupit.handlers.MessageResponse;
+import com.allcode.coupit.handlers.Utils;
 import com.allcode.coupit.models.*;
-import com.allcode.coupit.repositories.PurchaseRepository;
-import com.allcode.coupit.repositories.UserLinkRepository;
-import com.allcode.coupit.repositories.UserRepository;
+import com.allcode.coupit.repositories.*;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -28,6 +27,12 @@ public class PurchaseController {
     private UserLinkRepository userLinkRepository;
 
     @Autowired
+    private ProductRepository productRepository;
+
+    @Autowired
+    private TransactionRepository transactionRepository;
+
+    @Autowired
     private UserRepository userRepository;
 
     @GetMapping(produces=MediaType.APPLICATION_JSON_VALUE)
@@ -37,12 +42,21 @@ public class PurchaseController {
     public ResponseEntity<?> createPurchase(@RequestBody String json) {
         // Post Params
         JSONObject request = new JSONObject(json);
-        String uid = request.getString("uid");
-        Long userId = request.getLong("user_id");
-        Integer amount = request.getInt("amount");
 
-        String[] fieldsToValidate = new String[] { "uid", "userId", "amount" };
-        List<String> errors = this.validatePurchase(null, uid, userId, amount, fieldsToValidate);
+        String uid = null;
+        if(request.has("uid")){ uid = request.getString("uid"); }
+
+        Long productId = null;
+        if(request.has("product_id")){ productId = request.getLong("product_id"); }
+
+        Long userId = null;
+        if(request.has("user_id")){ userId = request.getLong("user_id"); }
+
+        Integer amount = null;
+        if(request.has("amount")){ amount = request.getInt("amount"); }
+
+        String[] fieldsToValidate = new String[] { "uid", "userId", "amount", "productId" };
+        List<String> errors = this.validatePurchase(null, uid, userId, amount, productId, fieldsToValidate);
 
         if(errors.size() != 0){
             ErrorResponse errorResponse = new ErrorResponse(String.join(", ", errors));
@@ -50,8 +64,14 @@ public class PurchaseController {
         }
 
         UserLink userLink = userLinkRepository.findByUid(uid);
+        Product product;
+        if(userLink == null){
+            product = productRepository.findById(productId).get();
+        }else{
+            product = userLink.getProduct();
+        }
+
         User user = userRepository.findById(userId).get();
-        Product product = userLink.getProduct();
         Merchant merchant = product.getMerchant();
         Currency currency = product.getCurrency();
         String productName = product.getName();
@@ -61,56 +81,59 @@ public class PurchaseController {
         Purchase purchase = new Purchase(userLink, user, product, merchant, currency, productName, productPrice, productDescription, amount);
         Purchase savedPurchase = purchaseRepository.save(purchase);
 
-        if(savedPurchase.getId().equals(null)) {
+        if(savedPurchase.getId() == null) {
             ErrorResponse error = new ErrorResponse("Error when saving the purchase");
             return new ResponseEntity<ErrorResponse>(error, HttpStatus.BAD_REQUEST);
+        }
+
+        Double valueTransaction = amount * productPrice;
+        if(userLink == null){
+            Transaction transaction = new Transaction(valueTransaction, currency, merchant.getUser(), savedPurchase);
+            transactionRepository.save(transaction);
+        }else{
+            Double partForMerchant = valueTransaction * 0.95;
+            if(Utils.getDecimalPlaces(partForMerchant) > currency.getDecimals()){
+                partForMerchant = Utils.roundDecimals(partForMerchant, currency.getDecimals());
+            }
+
+            Transaction transaction1 = new Transaction(partForMerchant, currency, merchant.getUser(), savedPurchase);
+            transactionRepository.save(transaction1);
+
+            Double partForOwnerLink = valueTransaction * 0.05;
+            if(Utils.getDecimalPlaces(partForMerchant) > currency.getDecimals()){
+                partForOwnerLink = Utils.roundDecimals(partForOwnerLink, currency.getDecimals());
+            }
+
+            Transaction transaction2 = new Transaction(partForOwnerLink, currency, userLink.getUser(), savedPurchase);
+            transactionRepository.save(transaction2);
         }
 
         return new ResponseEntity<Purchase>(savedPurchase, HttpStatus.CREATED);
 
     }
 
-    @DeleteMapping(path="/{id}", produces=MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<?> deletePurchase(@PathVariable(name="id", required=true) Long id) {
-        String[] fieldsToValidate = new String[] { "id" };
-        List<String> errors = this.validatePurchase(id,null, null, null, fieldsToValidate);
-
-        if(errors.size() != 0){
-            ErrorResponse errorResponse = new ErrorResponse(String.join(", ", errors));
-            return new ResponseEntity<ErrorResponse>(errorResponse, HttpStatus.BAD_REQUEST);
-        }
-
-        try{
-            purchaseRepository.deleteById(id);
-        }catch (Exception ex){
-            ErrorResponse errorResponse = new ErrorResponse("Purchase not exists");
-            return new ResponseEntity<ErrorResponse>(errorResponse, HttpStatus.BAD_REQUEST);
-        }
-
-        MessageResponse messageResponse = new MessageResponse("Purchase successfully deleted");
-        return new ResponseEntity<MessageResponse>(messageResponse, HttpStatus.OK);
-
-    }
-
-    private List<String> validatePurchase(Long id, String uid, Long userId, Integer amount, String[] fieldsToValidate){
+    private List<String> validatePurchase(Long id, String uid, Long userId, Integer amount,Long productId, String[] fieldsToValidate){
         List<String> errors = new ArrayList<>();
 
         if(Arrays.asList(fieldsToValidate).contains("id")) {
             try{
                 Purchase purchase = purchaseRepository.findById(id).get();
-                if (purchase.equals(null)){
+                if (purchase == null){
                     errors.add("Purchase not exists");
                 }
             }catch (Exception ex){  errors.add("Purchase not exists"); }
         }
 
         if(Arrays.asList(fieldsToValidate).contains("uid")) {
-            try{
-                UserLink userLink = userLinkRepository.findByUid(uid);
-                if (userLink.equals(null)){
-                    errors.add("uid is not valid");
-                }
-            }catch (Exception ex){  errors.add("uid is not valid"); }
+            UserLink userLink = userLinkRepository.findByUid(uid);
+            if(userLink == null){
+                try{
+                    Product product = productRepository.findById(productId).get();
+                    if (product == null){
+                        errors.add("Product is not valid");
+                    }
+                }catch (Exception ex){  errors.add("Product is not valid"); }
+            }
         }
 
         if(Arrays.asList(fieldsToValidate).contains("amount")) {
@@ -119,11 +142,11 @@ public class PurchaseController {
 
         if(Arrays.asList(fieldsToValidate).contains("userId")) {
             try{
-                User buyer = userRepository.findById(userId).get();
-                if (buyer.equals(null)){
-                    errors.add("Buyer is not valid");
+                User user = userRepository.findById(userId).get();
+                if (user == null){
+                    errors.add("User is not valid");
                 }
-            }catch (Exception ex){  errors.add("Buyer is not valid"); }
+            }catch (Exception ex){  errors.add("User is not valid"); }
         }
 
 

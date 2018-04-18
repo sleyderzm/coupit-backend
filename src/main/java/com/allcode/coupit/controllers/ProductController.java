@@ -1,6 +1,7 @@
 package com.allcode.coupit.controllers;
 
 import com.allcode.coupit.handlers.ErrorResponse;
+import com.allcode.coupit.handlers.Utils;
 import com.allcode.coupit.models.Currency;
 import com.allcode.coupit.models.Merchant;
 import com.allcode.coupit.models.Product;
@@ -58,13 +59,19 @@ public class ProductController {
         Long id = new Long(0);
         List<String> errors = this.validateProduct(id, merchantId, name, description, price, currencyId, fieldsToValidate);
         if(errors.size() == 0){
-            Merchant merchant = merchantRepository.findById(merchantId).get();
             Currency currency = currencyRepository.findById(currencyId).get();
 
+            //validate length of decimals
+            if(Utils.getDecimalPlaces(price) > currency.getDecimals()){
+                ErrorResponse error = new ErrorResponse(currency.getName() + " just have " + currency.getDecimals() + " decimals" );
+                return new ResponseEntity<ErrorResponse>(error, HttpStatus.BAD_REQUEST);
+            }
+
+            Merchant merchant = merchantRepository.findById(merchantId).get();
             Product product = new Product(name, price, description, merchant, currency);
             Product savedProduct = productRepository.save(product) ;
 
-            if(savedProduct.getId().equals(null))
+            if(savedProduct.getId() == null)
             {
                 ErrorResponse error = new ErrorResponse("Error when saving the product");
                 return new ResponseEntity<ErrorResponse>(error, HttpStatus.BAD_REQUEST);
@@ -83,11 +90,11 @@ public class ProductController {
         List<String> errors = new ArrayList<>();
 
         if(Arrays.asList(fieldsToValidate).contains("name")) {
-            if(name.equals(null) || name.equals("")){ errors.add("Name can not be empty"); }
+            if(name == null || name.equals("")){ errors.add("Name can not be empty"); }
         }
 
         if(Arrays.asList(fieldsToValidate).contains("description")) {
-            if(description.equals(null) || description.equals("")){ errors.add("Description can not be empty"); }
+            if(description == null || description.equals("")){ errors.add("Description can not be empty"); }
         }
 
         if(Arrays.asList(fieldsToValidate).contains("price")) {
@@ -96,7 +103,7 @@ public class ProductController {
 
         try{
             Merchant merchant = merchantRepository.findById(merchantId).get();
-            if (merchant.equals(null) && Arrays.asList(fieldsToValidate).contains("merchantId")){
+            if (merchant == null && Arrays.asList(fieldsToValidate).contains("merchantId")){
                 errors.add("Merchant not exists");
             }
         }
@@ -104,7 +111,7 @@ public class ProductController {
 
         try{
             Currency currency = currencyRepository.findById(currencyId).get();
-            if (currency.equals(null) && Arrays.asList(fieldsToValidate).contains("currencyId")){
+            if (currency == null && Arrays.asList(fieldsToValidate).contains("currencyId")){
                 errors.add("Currency not exists");
             }
         }

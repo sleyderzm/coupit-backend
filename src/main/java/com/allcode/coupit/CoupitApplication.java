@@ -35,8 +35,8 @@ public class CoupitApplication {
 		User user = new User(
 				"Admin",
 				"Coupit",
-				"admin@coupit.com",
-				passwordEncoder.encode("password"),
+				System.getenv("ADMIN_EMAIL"),
+				passwordEncoder.encode(System.getenv("ADMIN_PASSWORD")),
 				savedRole
 				);
 

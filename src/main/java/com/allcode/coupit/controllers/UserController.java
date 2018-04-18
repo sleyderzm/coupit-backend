@@ -66,7 +66,7 @@ public class UserController {
             Role userRole = roleRepository.findById(roleId).get();
             User user = new User(firstName, lastName, email, passwordEncoder.encode(password), userRole);
             User savedUser = userRepository.save(user);
-            if(savedUser.getId().equals(null))
+            if(savedUser.getId() == null)
             {
                 ErrorResponse error = new ErrorResponse("Error when saving the user");
                 return new ResponseEntity<ErrorResponse>(error, HttpStatus.BAD_REQUEST);
@@ -81,7 +81,7 @@ public class UserController {
                         savedUser
                 );
                 Account savedAccount = accountRepository.save(account);
-                if(savedAccount.getId().equals(null)){
+                if(savedAccount.getId() == null){
                     userRepository.delete(savedUser);
                     ErrorResponse errorResponse = new ErrorResponse("Error when saving the account");
                     return new ResponseEntity<ErrorResponse>(errorResponse, HttpStatus.BAD_REQUEST);
@@ -144,30 +144,30 @@ public class UserController {
                 Pattern.compile("^[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,6}$", Pattern.CASE_INSENSITIVE);
 
         if(Arrays.asList(fieldsToValidate).contains("firstName")) {
-            if(firstName.equals(null) || firstName.equals("")){ errors.add("First Name can not be empty"); }
+            if(firstName == null || firstName.equals("")){ errors.add("First Name can not be empty"); }
         }
 
         if(Arrays.asList(fieldsToValidate).contains("lastName")) {
-            if(lastName.equals(null) || lastName.equals("")){ errors.add("Last Name can not be empty"); }
+            if(lastName == null || lastName.equals("")){ errors.add("Last Name can not be empty"); }
         }
 
         if(Arrays.asList(fieldsToValidate).contains("email")) {
             Matcher matcher = valid_email_regex.matcher(email);
             User repeatUser = userRepository.findByEmail(email);
-            if(email.equals(null) || email.equals("")){ errors.add("Email can not be empty"); }
+            if(email == null || email.equals("")){ errors.add("Email can not be empty"); }
             else if(! matcher.find()){ errors.add("Email is not valid"); }
             else if (repeatUser != null) { errors.add("Email " + email + " already exist"); }
         }
 
         if(Arrays.asList(fieldsToValidate).contains("password")) {
-            if(password.equals(null) || password.equals("")){ errors.add("Password can not be empty"); }
-            else if(repeatPassword.equals(null) || repeatPassword.equals("")){ errors.add("Repeat Password can not be empty"); }
+            if(password == null || password.equals("")){ errors.add("Password can not be empty"); }
+            else if(repeatPassword == null || repeatPassword.equals("")){ errors.add("Repeat Password can not be empty"); }
             else if(! password.equals(repeatPassword)) { errors.add("Passwords do not match"); }
         }
 
         try{
             User user = userRepository.findById(id).get();
-            if (user.equals(null) && Arrays.asList(fieldsToValidate).contains("id")){
+            if (user == null && Arrays.asList(fieldsToValidate).contains("id")){
                 errors.add("User not exists");
             }
         }
@@ -175,7 +175,7 @@ public class UserController {
 
         try{
             Role userRole = roleRepository.findById(roleId).get();
-            if (userRole.equals(null) && Arrays.asList(fieldsToValidate).contains("roleId")){
+            if (userRole == null && Arrays.asList(fieldsToValidate).contains("roleId")){
                 errors.add("Role not exists");
             }
         }

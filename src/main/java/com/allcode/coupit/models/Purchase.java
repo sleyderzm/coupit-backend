@@ -1,10 +1,13 @@
 package com.allcode.coupit.models;
 
+import com.allcode.coupit.handlers.Utils;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import java.util.Date;
+import java.util.Set;
 
 @Entity
 @Table(name = "purchases")
@@ -44,7 +47,7 @@ public class Purchase {
     private String productName;
 
     @Column(name="product_price")
-    private Double productPrice;
+    private Long productPriceLong;
 
     @Column(name="product_description", columnDefinition="TEXT")
     private String productDescription;
@@ -57,6 +60,12 @@ public class Purchase {
     @Column(name="created_at", columnDefinition = "timestamptz")
     private Date createdAt;
 
+    @JsonBackReference
+    @OneToMany(mappedBy="user",fetch = FetchType.LAZY)
+    private Set<Transaction> purchase;
+
+    @Transient
+    private Double productPrice;
 
 
     public Purchase() {
@@ -73,6 +82,7 @@ public class Purchase {
         this.productDescription = productDescription;
         this.amount = amount;
         this.createdAt = new Date();
+        this.productPriceLong = Utils.priceToLong(this.productPrice, this.currency);
     }
 
     public Long getId() {
@@ -140,11 +150,25 @@ public class Purchase {
     }
 
     public Double getProductPrice() {
+        if(this.productPrice == null){
+            if(this.productPriceLong == null) return null;
+            this.productPrice = Utils.priceToDouble(this.productPriceLong, this.currency);
+        }
         return productPrice;
     }
 
-    public void setProductPrice(Double productPrice) {
-        this.productPrice = productPrice;
+    public void setProductPrice(Double price) {
+        this.productPrice = price;
+        this.productPriceLong = Utils.priceToLong(this.productPrice, this.currency);
+    }
+
+    public Long getPriceLong() {
+        return productPriceLong;
+    }
+
+    public void setPriceLong(Long priceLong) {
+        this.productPriceLong = priceLong;
+        this.productPrice = Utils.priceToDouble(this.productPriceLong, this.currency);
     }
 
     public String getProductDescription() {
