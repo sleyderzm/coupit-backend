@@ -32,7 +32,7 @@ public class MerchantController {
 
     @PostMapping(consumes=MediaType.APPLICATION_JSON_VALUE, produces=MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> createMerchant(@RequestBody String json) {
-        // Post Params
+        //TODO: Capture current user for user_id
         JSONObject request = new JSONObject(json);
         long userId = request.getLong("user_id");
         String merchantType = request.getString("merchant_type");
