@@ -21,6 +21,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/currencies")
+@CrossOrigin(origins = "*")
 public class CurrencyController {
 
     @Autowired

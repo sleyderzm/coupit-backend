@@ -26,6 +26,7 @@ import java.util.regex.Pattern;
 
 @RestController
 @RequestMapping("/blockchains")
+@CrossOrigin(origins = "*")
 public class BlockchainController {
 
     @Autowired

@@ -19,6 +19,7 @@ import java.util.regex.Pattern;
 
 @RestController
 @RequestMapping("/merchants")
+@CrossOrigin(origins = "*")
 public class MerchantController {
 
     @Autowired

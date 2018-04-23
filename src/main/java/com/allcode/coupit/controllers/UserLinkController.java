@@ -21,6 +21,7 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/user_links")
+@CrossOrigin(origins = "*")
 public class UserLinkController {
 
     @Autowired

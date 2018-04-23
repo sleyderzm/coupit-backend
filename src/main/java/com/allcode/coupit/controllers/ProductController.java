@@ -13,12 +13,8 @@ import com.allcode.coupit.repositories.UserRepository;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.http.HttpStatus;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -28,13 +24,16 @@ import java.util.regex.Pattern;
 
 @RestController
 @RequestMapping("/products")
+@CrossOrigin(origins = "*")
 public class ProductController {
 
     @Autowired
     private ProductRepository productRepository;
 
     @GetMapping
-    public Iterable<Product> getProduct(){ return productRepository.findAll(); }
+    public Iterable<Product> getProduct(){
+        return productRepository.findAll();
+    }
 
     @Autowired
     private UserRepository userRepository;
