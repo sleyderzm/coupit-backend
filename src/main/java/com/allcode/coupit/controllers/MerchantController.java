@@ -5,8 +5,10 @@ import com.allcode.coupit.models.Merchant;
 import com.allcode.coupit.models.User;
 import com.allcode.coupit.repositories.MerchantRepository;
 import com.allcode.coupit.repositories.UserRepository;
+import com.allcode.coupit.services.UserService;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -28,8 +30,20 @@ public class MerchantController {
     @Autowired
     private UserRepository userRepository;
 
+
+    @Autowired
+    private UserService userService;
+
     @GetMapping
-    public Iterable<Merchant> getMerchants(){ return merchantRepository.findAll(); }
+    public Iterable<Merchant> getMerchants(
+            @RequestParam(required = false) Integer pageNumber,
+            @RequestParam(required = false) Integer pageSize
+    ){
+        User currentUser = userService.getCurrentUser();
+        if(pageNumber == null)pageNumber = 0;
+        if(pageSize == null)pageSize = 10;
+        return merchantRepository.findByUser(currentUser, PageRequest.of(pageNumber, pageSize));
+    }
 
     @PostMapping(consumes=MediaType.APPLICATION_JSON_VALUE, produces=MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> createMerchant(@RequestBody String json) {

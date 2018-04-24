@@ -10,8 +10,10 @@ import com.allcode.coupit.repositories.CurrencyRepository;
 import com.allcode.coupit.repositories.MerchantRepository;
 import com.allcode.coupit.repositories.ProductRepository;
 import com.allcode.coupit.repositories.UserRepository;
+import com.allcode.coupit.services.UserService;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.ResponseEntity;
@@ -19,6 +21,7 @@ import org.springframework.http.HttpStatus;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -30,9 +33,19 @@ public class ProductController {
     @Autowired
     private ProductRepository productRepository;
 
+    @Autowired
+    private UserService userService;
+
     @GetMapping
-    public Iterable<Product> getProduct(){
-        return productRepository.findAll();
+    public Iterable<Product> getProduct(
+                                        @RequestParam(required = false) Integer pageNumber,
+                                        @RequestParam(required = false) Integer pageSize
+    ){
+        User currentUser = userService.getCurrentUser();
+        if(pageNumber == null)pageNumber = 0;
+        if(pageSize == null)pageSize = 10;
+        Set<Merchant> merchants = currentUser.getMerchants();
+        return productRepository.findByMerchantIn(merchants, PageRequest.of(pageNumber, pageSize));
     }
 
     @Autowired
