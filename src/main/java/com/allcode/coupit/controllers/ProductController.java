@@ -83,8 +83,8 @@ public class ProductController {
     public ResponseEntity<?> createProduct(@RequestBody String json) {
         // Post Params
         JSONObject request = new JSONObject(json);
-        long merchantId = request.getLong("merchant_id");
-        long currencyId = request.getLong("currency_id");
+        long merchantId = request.getLong("merchantId");
+        long currencyId = request.getLong("currencyId");
         String name = request.getString("name");
         String description = request.getString("description");
         double price = request.getDouble("price");
@@ -93,8 +93,16 @@ public class ProductController {
         Long id = new Long(0);
         List<String> errors = this.validateProduct(id, merchantId, name, description, price, currencyId, fieldsToValidate);
         if(errors.size() == 0){
-            Currency currency = currencyRepository.findById(currencyId).get();
+            User user = userService.getCurrentUser();
 
+            //validate if the user owns the merchant
+            Merchant merchantUser = merchantRepository.findById(merchantId).get();
+            if (!merchantUser.havePermission(user)){
+                ErrorResponse error = new ErrorResponse("You have not permission");
+                return new ResponseEntity<ErrorResponse>(error, HttpStatus.UNAUTHORIZED);
+            }
+
+            Currency currency = currencyRepository.findById(currencyId).get();
             //validate length of decimals
             if(Utils.getDecimalPlaces(price) > currency.getDecimals()){
                 ErrorResponse error = new ErrorResponse(currency.getName() + " just have " + currency.getDecimals() + " decimals" );
@@ -115,6 +123,73 @@ public class ProductController {
             }
         }
         else{
+            ErrorResponse errorResponse = new ErrorResponse(String.join(", ", errors));
+            return new ResponseEntity<ErrorResponse>(errorResponse, HttpStatus.BAD_REQUEST);
+        }
+    }
+    @PutMapping(value="/{id}")
+    public ResponseEntity<?> updateProduct(
+            @RequestBody String json,
+            @PathVariable Long id
+    ) {
+        JSONObject request = new JSONObject(json);
+        long merchantId = request.getLong("merchantId");
+        long currencyId = 0;
+        String name = null;
+        String description = null;
+        double price = 0;
+
+        if(request.has("currencyId")){
+            currencyId = request.getLong("currencyId");
+        }
+
+        if(request.has("name")){
+            name = request.getString("name");
+        }
+
+        if(request.has("description")){
+            description = request.getString("description");
+        }
+
+        if(request.has("price")){
+            price = request.getDouble("price");
+        }
+
+        String[] fieldsToValidate = new String[] {"id"};
+        List<String> errors = this.validateProduct(id,merchantId,name,description,price,currencyId,fieldsToValidate);
+        if(errors == null || errors.size() == 0){
+            Product product = productRepository.findById(id).get();
+            Currency currency = currencyRepository.findById(currencyId).get();
+            Merchant merchant = merchantRepository.findById(merchantId).get();
+            User currentUser = userService.getCurrentUser();
+            if(!merchant.havePermission(currentUser)){
+                ErrorResponse error = new ErrorResponse("You have not Permission");
+                return new ResponseEntity<ErrorResponse>(error, HttpStatus.UNAUTHORIZED);
+            }
+            if(currency != null){
+                product.setCurrency(currency);
+            }
+
+            if(name != null && !name.isEmpty()){
+                product.setName(name);
+            }
+
+            if(description != null && !description.isEmpty()){
+                product.setDescription(description);
+            }
+
+            if(price > 0){
+                product.setPrice(price);
+            }
+
+            Product savedProduct = productRepository.save(product);
+            if(savedProduct.getId() == null) {
+                ErrorResponse error = new ErrorResponse("Error when saving the product");
+                return new ResponseEntity<ErrorResponse>(error, HttpStatus.BAD_REQUEST);
+            } else {
+                return new ResponseEntity<Product>(savedProduct, HttpStatus.CREATED);
+            }
+        }else{
             ErrorResponse errorResponse = new ErrorResponse(String.join(", ", errors));
             return new ResponseEntity<ErrorResponse>(errorResponse, HttpStatus.BAD_REQUEST);
         }
