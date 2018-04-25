@@ -133,4 +133,8 @@ public class Product implements Serializable {
                 ", merchant='" + merchant.toString() + '\'' +
                 '}';
     }
+
+    public Boolean havePermission(User user){
+        return this.getMerchant().havePermission(user);
+    }
 }

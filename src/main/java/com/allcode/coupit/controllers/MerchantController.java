@@ -1,6 +1,7 @@
 package com.allcode.coupit.controllers;
 
 import com.allcode.coupit.handlers.ErrorResponse;
+import com.allcode.coupit.handlers.Utils;
 import com.allcode.coupit.models.Merchant;
 import com.allcode.coupit.models.User;
 import com.allcode.coupit.repositories.MerchantRepository;
@@ -45,22 +46,43 @@ public class MerchantController {
         return merchantRepository.findByUser(currentUser, PageRequest.of(pageNumber, pageSize));
     }
 
+    @GetMapping(value="/{id}")
+    public ResponseEntity<?> getMerchants(
+            @PathVariable Long id
+    ){
+        Merchant merchant = null;
+        try {
+            merchant = merchantRepository.findById(id).get();
+        }catch (Exception e){
+            ErrorResponse error = new ErrorResponse("Merchant not found");
+            return new ResponseEntity<ErrorResponse>(error, HttpStatus.NOT_FOUND);
+        }
+
+        User currentUser = userService.getCurrentUser();
+
+        if(!merchant.havePermission(currentUser)){
+            ErrorResponse error = new ErrorResponse("You have not permission");
+            return new ResponseEntity<ErrorResponse>(error, HttpStatus.UNAUTHORIZED);
+        }
+
+        return new ResponseEntity<Merchant>(merchant, HttpStatus.OK);
+    }
+
     @PostMapping(consumes=MediaType.APPLICATION_JSON_VALUE, produces=MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> createMerchant(@RequestBody String json) {
-        //TODO: Capture current user for user_id
+
         JSONObject request = new JSONObject(json);
-        long userId = request.getLong("user_id");
-        String merchantType = request.getString("merchant_type");
+        String merchantType = request.getString("merchantType");
         String name = request.getString("name");
-        String websiteUrl = request.getString("website_url");
+        String websiteUrl = request.getString("websiteUrl");
 
-        String[] fieldsToValidate = new String[] { "userId","merchantType", "name", "websiteUrl" };
+        String[] fieldsToValidate = new String[] {"merchantType", "name", "websiteUrl" };
         Long id = new Long(0);
-        List<String> errors = this.validateMerchant(id, userId, merchantType, name, websiteUrl, fieldsToValidate);
+        List<String> errors = this.validateMerchant(id, merchantType, name, websiteUrl, fieldsToValidate);
         if(errors.size() == 0){
-            User user = userRepository.findById(userId).get();
+            User currentUser = userService.getCurrentUser();
 
-            Merchant merchant = new Merchant(merchantType, name, websiteUrl, user);
+            Merchant merchant = new Merchant(merchantType, name, websiteUrl, currentUser);
             Merchant savedMerchant = merchantRepository.save(merchant) ;
 
             if(savedMerchant.getId() == null)
@@ -78,11 +100,69 @@ public class MerchantController {
         }
     }
 
-    private List<String> validateMerchant(long id, long userId, String merchantType, String name, String websiteUrl, String[] fieldsToValidate){
-        List<String> errors = new ArrayList<>();
+    @PutMapping(value="/{id}")
+    public ResponseEntity<?> updateMerchant(
+            @RequestBody String json,
+            @PathVariable Long id
+    ) {
+        JSONObject request = new JSONObject(json);
+        String merchantType = null;
+        String name = null;
+        String websiteUrl = null;
 
-        final Pattern valid_url_regex =
-                Pattern.compile("^(http://|https://)?(www.)?([a-zA-Z0-9]+).[a-zA-Z0-9]*.[a-z]{3}.?([a-z]+)?$");
+        if(request.has("merchantType")){
+            merchantType = request.getString("merchantType");
+        }
+
+        if(request.has("name")){
+            name = request.getString("name");
+        }
+
+        if(request.has("websiteUrl")){
+            websiteUrl = request.getString("websiteUrl");
+        }
+
+        String[] fieldsToValidate = new String[] {"id" };
+        List<String> errors = this.validateMerchant(id, merchantType, name, websiteUrl, fieldsToValidate);
+        if(errors.size() == 0){
+            Merchant merchant = merchantRepository.findById(id).get();
+            User currentUser = userService.getCurrentUser();
+            if(!merchant.havePermission(currentUser)){
+                ErrorResponse error = new ErrorResponse("You have not Permission");
+                return new ResponseEntity<ErrorResponse>(error, HttpStatus.UNAUTHORIZED);
+            }
+
+            if(merchantType != null && !merchantType.equals("")){
+                merchant.setMerchantType(merchantType);
+            }
+
+            if(name != null && !name.equals("")){
+                merchant.setName(name);
+            }
+
+            if(websiteUrl != null && !websiteUrl.equals("")){
+                merchant.setWebsiteUrl(websiteUrl);
+            }
+
+            Merchant savedMerchant = merchantRepository.save(merchant) ;
+
+            if(savedMerchant.getId() == null)
+            {
+                ErrorResponse error = new ErrorResponse("Error when saving the merchant");
+                return new ResponseEntity<ErrorResponse>(error, HttpStatus.BAD_REQUEST);
+            }
+            else{
+                return new ResponseEntity<Merchant>(savedMerchant, HttpStatus.CREATED);
+            }
+        }
+        else{
+            ErrorResponse errorResponse = new ErrorResponse(String.join(", ", errors));
+            return new ResponseEntity<ErrorResponse>(errorResponse, HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    private List<String> validateMerchant(long id, String merchantType, String name, String websiteUrl, String[] fieldsToValidate){
+        List<String> errors = new ArrayList<>();
 
         if(Arrays.asList(fieldsToValidate).contains("merchantType")) {
             if(merchantType == null || merchantType.equals("")){ errors.add("Merchant Type can not be empty"); }
@@ -94,19 +174,17 @@ public class MerchantController {
             if(name == null || name.equals("")){ errors.add("Name can not be empty"); }
         }
 
-        if(Arrays.asList(fieldsToValidate).contains("websiteUrl")) {
-            Matcher matcher = valid_url_regex.matcher(websiteUrl);
-            if(websiteUrl == null || websiteUrl.equals("")){ errors.add("Website Url can not be empty"); }
-            else if(! matcher.find()){ errors.add("Website Url is not valid"); }
+        if(Arrays.asList(fieldsToValidate).contains("id")){
+            try{
+                Merchant merchant = merchantRepository.findById(id).get();
+            }
+            catch (Exception ex){  errors.add("Merchant not exists"); }
         }
 
-        try{
-            User user = userRepository.findById(userId).get();
-            if (user == null && Arrays.asList(fieldsToValidate).contains("userId")){
-                errors.add("User not exists");
-            }
+        if(Arrays.asList(fieldsToValidate).contains("websiteUrl")) {
+            if(websiteUrl == null || websiteUrl.equals("")){ errors.add("Website Url can not be empty"); }
+            else if(!Utils.isValidURL(websiteUrl)){ errors.add("Website Url is not valid"); }
         }
-        catch (Exception ex){ if(Arrays.asList(fieldsToValidate).contains("userId")){ errors.add("User not exists"); } }
 
         return errors;
     }

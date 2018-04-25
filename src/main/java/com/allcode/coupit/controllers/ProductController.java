@@ -36,6 +36,15 @@ public class ProductController {
     @Autowired
     private UserService userService;
 
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private MerchantRepository merchantRepository;
+
+    @Autowired
+    private CurrencyRepository currencyRepository;
+
     @GetMapping
     public Iterable<Product> getProduct(
                                         @RequestParam(required = false) Integer pageNumber,
@@ -48,14 +57,27 @@ public class ProductController {
         return productRepository.findByMerchantIn(merchants, PageRequest.of(pageNumber, pageSize));
     }
 
-    @Autowired
-    private UserRepository userRepository;
+    @GetMapping(value="/{id}")
+    public ResponseEntity<?> getProducts(
+            @PathVariable Long id
+    ){
+        Product product = null;
+        try {
+            product = productRepository.findById(id).get();
+        }catch (Exception e){
+            ErrorResponse error = new ErrorResponse("Product not found");
+            return new ResponseEntity<ErrorResponse>(error, HttpStatus.NOT_FOUND);
+        }
 
-    @Autowired
-    private MerchantRepository merchantRepository;
+        User currentUser = userService.getCurrentUser();
 
-    @Autowired
-    private CurrencyRepository currencyRepository;
+        if(!product.havePermission(currentUser)){
+            ErrorResponse error = new ErrorResponse("You have not permission");
+            return new ResponseEntity<ErrorResponse>(error, HttpStatus.UNAUTHORIZED);
+        }
+
+        return new ResponseEntity<Product>(product, HttpStatus.OK);
+    }
 
     @PostMapping(consumes=MediaType.APPLICATION_JSON_VALUE, produces=MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> createProduct(@RequestBody String json) {

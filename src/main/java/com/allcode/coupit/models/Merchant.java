@@ -103,4 +103,14 @@ public class Merchant implements Serializable {
                 ", user='" + user.toString() + '\'' +
                 '}';
     }
+
+    public Boolean havePermission(User user){
+        if(!user.isAdminRole()){
+            User merchantUser = this.getUser();
+            if(merchantUser == null || !merchantUser.getId().equals(user.getId())){
+                return false;
+            }
+        }
+        return true;
+    }
 }

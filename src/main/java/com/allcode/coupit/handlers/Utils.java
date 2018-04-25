@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
 import java.math.RoundingMode;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.text.DecimalFormat;
@@ -61,6 +62,16 @@ public class Utils {
         DecimalFormat df = new DecimalFormat(pattern);
         df.setRoundingMode(RoundingMode.CEILING);
         return Double.parseDouble(df.format(d));
+    }
+
+    public static boolean isValidURL(String urlStr) {
+        try {
+            URL url = new URL(urlStr);
+            return true;
+        }
+        catch (MalformedURLException e) {
+            return false;
+        }
     }
 
 }
