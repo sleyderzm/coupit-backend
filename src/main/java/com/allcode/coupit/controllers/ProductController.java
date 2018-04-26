@@ -22,8 +22,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 @RestController
 @RequestMapping("/products")
@@ -81,35 +79,39 @@ public class ProductController {
 
     @PostMapping(consumes=MediaType.APPLICATION_JSON_VALUE, produces=MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> createProduct(@RequestBody String json) {
-        // Post Params
         JSONObject request = new JSONObject(json);
-        long merchantId = request.getLong("merchantId");
-        long currencyId = request.getLong("currencyId");
-        String name = request.getString("name");
-        String description = request.getString("description");
-        double price = request.getDouble("price");
+
+        Long merchantId = null;
+        Long currencyId = null;
+        String name = null;
+        String description = null;
+        Double price = null;
+
+        if(request.has("merchantId")) merchantId = request.getLong("merchantId");
+        if(request.has("currencyId")) currencyId = request.getLong("currencyId");
+        if(request.has("name")) name = request.getString("name");
+        if(request.has("description")) description = request.getString("description");
+        if(request.has("price")) price = request.getDouble("price");
 
         String[] fieldsToValidate = new String[] { "merchantId", "name", "description", "price", "currencyId" };
-        Long id = new Long(0);
-        List<String> errors = this.validateProduct(id, merchantId, name, description, price, currencyId, fieldsToValidate);
+        List<String> errors = this.validateProduct(null, merchantId, name, description, price, currencyId, fieldsToValidate);
         if(errors.size() == 0){
-            User user = userService.getCurrentUser();
+            User currentUser = userService.getCurrentUser();
 
-            //validate if the user owns the merchant
-            Merchant merchantUser = merchantRepository.findById(merchantId).get();
-            if (!merchantUser.havePermission(user)){
+            Merchant merchant = merchantRepository.findById(merchantId).get();
+            if (!merchant.havePermission(currentUser)){
                 ErrorResponse error = new ErrorResponse("You have not permission");
                 return new ResponseEntity<ErrorResponse>(error, HttpStatus.UNAUTHORIZED);
             }
 
             Currency currency = currencyRepository.findById(currencyId).get();
+
             //validate length of decimals
             if(Utils.getDecimalPlaces(price) > currency.getDecimals()){
                 ErrorResponse error = new ErrorResponse(currency.getName() + " just have " + currency.getDecimals() + " decimals" );
                 return new ResponseEntity<ErrorResponse>(error, HttpStatus.BAD_REQUEST);
             }
 
-            Merchant merchant = merchantRepository.findById(merchantId).get();
             Product product = new Product(name, price, description, merchant, currency);
             Product savedProduct = productRepository.save(product) ;
 
@@ -127,20 +129,26 @@ public class ProductController {
             return new ResponseEntity<ErrorResponse>(errorResponse, HttpStatus.BAD_REQUEST);
         }
     }
+
+
     @PutMapping(value="/{id}")
     public ResponseEntity<?> updateProduct(
             @RequestBody String json,
             @PathVariable Long id
     ) {
         JSONObject request = new JSONObject(json);
-        long merchantId = request.getLong("merchantId");
-        long currencyId = 0;
+        Long merchantId = null;
+        Long currencyId = null;
         String name = null;
         String description = null;
-        double price = 0;
+        Double price = null;
 
         if(request.has("currencyId")){
             currencyId = request.getLong("currencyId");
+        }
+
+        if(request.has("merchantId")){
+            merchantId = request.getLong("merchantId");
         }
 
         if(request.has("name")){
@@ -157,18 +165,45 @@ public class ProductController {
 
         String[] fieldsToValidate = new String[] {"id"};
         List<String> errors = this.validateProduct(id,merchantId,name,description,price,currencyId,fieldsToValidate);
-        if(errors == null || errors.size() == 0){
+        if(errors.size() == 0){
             Product product = productRepository.findById(id).get();
-            Currency currency = currencyRepository.findById(currencyId).get();
-            Merchant merchant = merchantRepository.findById(merchantId).get();
             User currentUser = userService.getCurrentUser();
-            if(!merchant.havePermission(currentUser)){
-                ErrorResponse error = new ErrorResponse("You have not Permission");
-                return new ResponseEntity<ErrorResponse>(error, HttpStatus.UNAUTHORIZED);
+
+            if(merchantId != null){
+                try{
+                    Merchant merchant = merchantRepository.findById(merchantId).get();
+
+                    if(!merchant.havePermission(currentUser)){
+                        ErrorResponse error = new ErrorResponse("You have not Permission");
+                        return new ResponseEntity<ErrorResponse>(error, HttpStatus.UNAUTHORIZED);
+                    }
+
+                    product.setMerchant(merchant);
+                }catch (Exception e){
+                    ErrorResponse error = new ErrorResponse("Merchant not Exists");
+                    return new ResponseEntity<ErrorResponse>(error, HttpStatus.UNAUTHORIZED);
+                }
             }
-            if(currency != null){
-                product.setCurrency(currency);
+
+            Currency currency = null;
+            if(currencyId != null){
+                try{
+                    currency = currencyRepository.findById(currencyId).get();
+                    product.setCurrency(currency);
+                }catch (Exception e){
+                    ErrorResponse error = new ErrorResponse("Currency not Exists");
+                    return new ResponseEntity<ErrorResponse>(error, HttpStatus.UNAUTHORIZED);
+                }
             }
+
+            if(price != null){
+                if(Utils.getDecimalPlaces(price) > currency.getDecimals()){
+                    ErrorResponse error = new ErrorResponse(currency.getName() + " just have " + currency.getDecimals() + " decimals" );
+                    return new ResponseEntity<ErrorResponse>(error, HttpStatus.BAD_REQUEST);
+                }
+                product.setPrice(price);
+            }
+
 
             if(name != null && !name.isEmpty()){
                 product.setName(name);
@@ -176,10 +211,6 @@ public class ProductController {
 
             if(description != null && !description.isEmpty()){
                 product.setDescription(description);
-            }
-
-            if(price > 0){
-                product.setPrice(price);
             }
 
             Product savedProduct = productRepository.save(product);
@@ -195,7 +226,7 @@ public class ProductController {
         }
     }
 
-    private List<String> validateProduct(long id, long merchantId, String name, String description, double price, long currencyId, String[] fieldsToValidate){
+    private List<String> validateProduct(Long id, Long merchantId, String name, String description, Double price, Long currencyId, String[] fieldsToValidate){
         List<String> errors = new ArrayList<>();
 
         if(Arrays.asList(fieldsToValidate).contains("name")) {
@@ -210,21 +241,26 @@ public class ProductController {
             if(price < 0){ errors.add("Price must be greater than or equal to zero"); }
         }
 
-        try{
-            Merchant merchant = merchantRepository.findById(merchantId).get();
-            if (merchant == null && Arrays.asList(fieldsToValidate).contains("merchantId")){
-                errors.add("Merchant not exists");
+        if(Arrays.asList(fieldsToValidate).contains("id")){
+            try{
+                Product product = productRepository.findById(id).get();
             }
+            catch (Exception ex){ errors.add("Product not exists"); }
         }
-        catch (Exception ex){ if(Arrays.asList(fieldsToValidate).contains("merchantId")){ errors.add("Merchant not exists"); } }
 
-        try{
-            Currency currency = currencyRepository.findById(currencyId).get();
-            if (currency == null && Arrays.asList(fieldsToValidate).contains("currencyId")){
-                errors.add("Currency not exists");
+        if(Arrays.asList(fieldsToValidate).contains("merchantId")){
+            try{
+                Merchant merchant = merchantRepository.findById(merchantId).get();
             }
+            catch (Exception ex){ errors.add("Merchant not exists"); }
         }
-        catch (Exception ex){ if(Arrays.asList(fieldsToValidate).contains("currencyId")){ errors.add("Currency not exists"); } }
+
+        if(Arrays.asList(fieldsToValidate).contains("currencyId")){
+            try{
+                Currency currency = currencyRepository.findById(currencyId).get();
+            }
+            catch (Exception ex){ errors.add("Currency not exists"); }
+        }
 
         return errors;
     }
