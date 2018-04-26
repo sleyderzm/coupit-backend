@@ -69,7 +69,7 @@ public class ProductController {
 
         User currentUser = userService.getCurrentUser();
 
-        if(!product.havePermission(currentUser)){
+        if(!product.hasPermission(currentUser)){
             ErrorResponse error = new ErrorResponse("You have not permission");
             return new ResponseEntity<ErrorResponse>(error, HttpStatus.UNAUTHORIZED);
         }
@@ -99,7 +99,7 @@ public class ProductController {
             User currentUser = userService.getCurrentUser();
 
             Merchant merchant = merchantRepository.findById(merchantId).get();
-            if (!merchant.havePermission(currentUser)){
+            if (!merchant.hasPermission(currentUser)){
                 ErrorResponse error = new ErrorResponse("You have not permission");
                 return new ResponseEntity<ErrorResponse>(error, HttpStatus.UNAUTHORIZED);
             }
@@ -137,7 +137,6 @@ public class ProductController {
             @PathVariable Long id
     ) {
         JSONObject request = new JSONObject(json);
-        Long merchantId = null;
         Long currencyId = null;
         String name = null;
         String description = null;
@@ -145,10 +144,6 @@ public class ProductController {
 
         if(request.has("currencyId")){
             currencyId = request.getLong("currencyId");
-        }
-
-        if(request.has("merchantId")){
-            merchantId = request.getLong("merchantId");
         }
 
         if(request.has("name")){
@@ -164,26 +159,22 @@ public class ProductController {
         }
 
         String[] fieldsToValidate = new String[] {"id"};
-        List<String> errors = this.validateProduct(id,merchantId,name,description,price,currencyId,fieldsToValidate);
+        List<String> errors = this.validateProduct(id,null,name,description,price,currencyId,fieldsToValidate);
         if(errors.size() == 0){
-            Product product = productRepository.findById(id).get();
             User currentUser = userService.getCurrentUser();
-
-            if(merchantId != null){
+            Product product = null;
                 try{
-                    Merchant merchant = merchantRepository.findById(merchantId).get();
+                    product = productRepository.findById(id).get();
 
-                    if(!merchant.havePermission(currentUser)){
+                    if(!product.hasPermission(currentUser)){
                         ErrorResponse error = new ErrorResponse("You have not Permission");
                         return new ResponseEntity<ErrorResponse>(error, HttpStatus.UNAUTHORIZED);
                     }
 
-                    product.setMerchant(merchant);
-                }catch (Exception e){
-                    ErrorResponse error = new ErrorResponse("Merchant not Exists");
+                }catch (Exception e) {
+                    ErrorResponse error = new ErrorResponse("Product not Exists");
                     return new ResponseEntity<ErrorResponse>(error, HttpStatus.UNAUTHORIZED);
                 }
-            }
 
             Currency currency = null;
             if(currencyId != null){

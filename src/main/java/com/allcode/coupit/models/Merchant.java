@@ -104,7 +104,7 @@ public class Merchant implements Serializable {
                 '}';
     }
 
-    public Boolean havePermission(User user){
+    public Boolean hasPermission(User user){
         if(!user.isAdminRole()){
             User merchantUser = this.getUser();
             if(merchantUser == null || !merchantUser.getId().equals(user.getId())){

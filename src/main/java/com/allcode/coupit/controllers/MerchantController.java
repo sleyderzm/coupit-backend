@@ -65,7 +65,7 @@ public class MerchantController {
 
         User currentUser = userService.getCurrentUser();
 
-        if(!merchant.havePermission(currentUser)){
+        if(!merchant.hasPermission(currentUser)){
             ErrorResponse error = new ErrorResponse("You have not permission");
             return new ResponseEntity<ErrorResponse>(error, HttpStatus.UNAUTHORIZED);
         }
@@ -132,7 +132,7 @@ public class MerchantController {
         if(errors.size() == 0){
             Merchant merchant = merchantRepository.findById(id).get();
             User currentUser = userService.getCurrentUser();
-            if(!merchant.havePermission(currentUser)){
+            if(!merchant.hasPermission(currentUser)){
                 ErrorResponse error = new ErrorResponse("You have not Permission");
                 return new ResponseEntity<ErrorResponse>(error, HttpStatus.UNAUTHORIZED);
             }

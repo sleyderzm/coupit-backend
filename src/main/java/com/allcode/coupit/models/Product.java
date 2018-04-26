@@ -134,7 +134,7 @@ public class Product implements Serializable {
                 '}';
     }
 
-    public Boolean havePermission(User user){
-        return this.getMerchant().havePermission(user);
+    public Boolean hasPermission(User user){
+        return this.getMerchant().hasPermission(user);
     }
 }
