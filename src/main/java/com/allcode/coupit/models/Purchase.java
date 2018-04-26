@@ -43,6 +43,12 @@ public class Purchase {
     @JoinColumn(name="currency_id")
     private Currency currency;
 
+    @Column(name="merchant_type")
+    private String merchantType;
+
+    @Column(name="merchant_name")
+    private String merchantName;
+
     @Column(name="product_name")
     private String productName;
 
@@ -71,12 +77,32 @@ public class Purchase {
     public Purchase() {
     }
 
-    public Purchase(UserLink userLink, User user, Product product, Merchant merchant, Currency currency, String productName, Double productPrice, String productDescription, Integer amount) {
+    public Purchase(UserLink userLink, User user, Product product, Merchant merchant, Currency currency, String merchantType, String merchantName, String productName, Long productPriceLong, String productDescription, Integer amount, @NotNull Date createdAt, Set<Transaction> purchase, Double productPrice) {
         this.userLink = userLink;
         this.user = user;
         this.product = product;
         this.merchant = merchant;
         this.currency = currency;
+        this.merchantType = merchantType;
+        this.merchantName = merchantName;
+        this.productName = productName;
+        this.productPriceLong = productPriceLong;
+        this.productDescription = productDescription;
+        this.amount = amount;
+        this.createdAt = createdAt;
+        this.purchase = purchase;
+        this.productPrice = productPrice;
+    }
+
+    public Purchase(UserLink userLink, User user, Product product, Merchant merchant, Currency currency, String merchantType,String merchantName, String productName, Double productPrice, String productDescription, Integer amount) {
+        this.userLink = userLink;
+        this.user = user;
+
+        this.product = product;
+        this.merchant = merchant;
+        this.currency = currency;
+        this.merchantType = merchantType;
+        this.merchantName = merchantName;
         this.productName = productName;
         this.productPrice = productPrice;
         this.productDescription = productDescription;
@@ -100,6 +126,10 @@ public class Purchase {
     public void setId(Long id) {
         this.id = id;
     }
+
+    public String getMerchantType() { return merchantType; }
+
+    public void setMerchantType(String merchantType) { this.merchantType = merchantType; }
 
     public Integer getAmount() {
         return amount;

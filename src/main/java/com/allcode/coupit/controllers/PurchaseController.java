@@ -74,12 +74,14 @@ public class PurchaseController {
 
         User user = userRepository.findById(userId).get();
         Merchant merchant = product.getMerchant();
+        String merchantType = merchant.getMerchantType();
+        String merchantName = merchant.getName();
         Currency currency = product.getCurrency();
         String productName = product.getName();
         String productDescription = product.getDescription();
         Double productPrice = product.getPrice();
 
-        Purchase purchase = new Purchase(userLink, user, product, merchant, currency, productName, productPrice, productDescription, amount);
+        Purchase purchase = new Purchase(userLink, user, product, merchant, currency,merchantType,merchantName, productName, productPrice, productDescription, amount);
         Purchase savedPurchase = purchaseRepository.save(purchase);
 
         if(savedPurchase.getId() == null) {
@@ -149,8 +151,6 @@ public class PurchaseController {
                 }
             }catch (Exception ex){  errors.add("User is not valid"); }
         }
-
-
 
         return errors;
     }
