@@ -17,8 +17,6 @@ import org.springframework.web.bind.annotation.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 @RestController
 @RequestMapping("/merchants")
@@ -36,18 +34,25 @@ public class MerchantController {
     private UserService userService;
 
     @GetMapping
-    public Iterable<Merchant> getMerchants(
+    public Iterable<Merchant> getPaginatedMerchants(
             @RequestParam(required = false) Integer pageNumber,
             @RequestParam(required = false) Integer pageSize
     ){
         User currentUser = userService.getCurrentUser();
         if(pageNumber == null)pageNumber = 0;
         if(pageSize == null)pageSize = 10;
-        return merchantRepository.findByUser(currentUser, PageRequest.of(pageNumber, pageSize));
+        return merchantRepository.findByUserOrderByName(currentUser, PageRequest.of(pageNumber, pageSize));
+    }
+
+    @GetMapping(value="/list")
+    public Iterable<Merchant> getMerchants(
+    ){
+        User currentUser = userService.getCurrentUser();
+        return merchantRepository.findByUserOrderByName(currentUser);
     }
 
     @GetMapping(value="/{id}")
-    public ResponseEntity<?> getMerchants(
+    public ResponseEntity<?> getMerchant(
             @PathVariable Long id
     ){
         Merchant merchant = null;

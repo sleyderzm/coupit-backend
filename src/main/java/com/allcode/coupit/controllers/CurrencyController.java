@@ -10,6 +10,7 @@ import com.allcode.coupit.repositories.CurrencyRepository;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -30,8 +31,21 @@ public class CurrencyController {
     @Autowired
     private CurrencyRepository currencyRepository;
 
-    @GetMapping(produces=MediaType.APPLICATION_JSON_VALUE)
-    public Iterable<Currency> getCurrencies(){ return currencyRepository.findAll(); }
+    @GetMapping
+    public Iterable<Currency> getPaginatedCurrencies(
+            @RequestParam(required = false) Integer pageNumber,
+            @RequestParam(required = false) Integer pageSize
+    ){
+        if(pageNumber == null)pageNumber = 0;
+        if(pageSize == null)pageSize = 10;
+        return currencyRepository.findAllByOrderByName(PageRequest.of(pageNumber, pageSize));
+    }
+
+    @GetMapping(value="/list")
+    public Iterable<Currency> getCurrencies(
+    ){
+        return currencyRepository.findAllByOrderByName();
+    }
 
     @PostMapping(path="/update", consumes=MediaType.APPLICATION_JSON_VALUE, produces=MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> updateCurrencies() {
