@@ -55,6 +55,17 @@ public class ProductController {
         return productRepository.findByMerchantIn(merchants, PageRequest.of(pageNumber, pageSize));
     }
 
+    @GetMapping(path="/list")
+    public Iterable<Product> getProductAll(
+            @RequestParam(required = false) Integer pageNumber,
+            @RequestParam(required = false) Integer pageSize
+    ){
+        User currentUser = userService.getCurrentUser();
+        if(pageNumber == null)pageNumber = 0;
+        if(pageSize == null)pageSize = 10;
+        return productRepository.findAll(PageRequest.of(pageNumber, pageSize));
+    }
+
     @GetMapping(value="/{id}")
     public ResponseEntity<?> getProducts(
             @PathVariable Long id

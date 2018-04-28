@@ -11,4 +11,5 @@ import java.util.Set;
 
 public interface ProductRepository extends CrudRepository<Product, Long> {
     Page<Product> findByMerchantIn(Set<Merchant> merchants, Pageable pageable);
+    Page<Product> findAll(Pageable pageable);
 }
