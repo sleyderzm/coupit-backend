@@ -54,10 +54,33 @@ public class Product implements Serializable {
     @OneToMany(mappedBy="product",fetch = FetchType.LAZY)
     private Set<Purchase> purchases;
 
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name="image_id")
+    @JsonBackReference
+    private ProductImage principalImage;
+
+    @JsonBackReference
+    @OneToMany(mappedBy="product",fetch = FetchType.LAZY)
+    private Set<ProductImage> productImages;
+
     public Long getId() { return id; }
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public String getAwsKey(){
+        if(this.getPrincipalImage() != null){
+            return this.getPrincipalImage().getAwsKey();
+        }
+        return null;
+    }
+
+    public String getFileName(){
+        if(this.getPrincipalImage() != null){
+            return this.getPrincipalImage().getName();
+        }
+        return null;
     }
 
     public String getName() { return name; }
@@ -132,6 +155,14 @@ public class Product implements Serializable {
                 ", description='" + description + '\'' +
                 ", merchant='" + merchant.toString() + '\'' +
                 '}';
+    }
+
+    public ProductImage getPrincipalImage() {
+        return principalImage;
+    }
+
+    public void setPrincipalImage(ProductImage principalImage) {
+        this.principalImage = principalImage;
     }
 
     public Boolean hasPermission(User user){

@@ -1,6 +1,8 @@
 package com.allcode.coupit.controllers;
 
 import com.allcode.coupit.handlers.ErrorResponse;
+import com.allcode.coupit.handlers.MessageResponse;
+import com.allcode.coupit.handlers.S3;
 import com.allcode.coupit.models.User;
 import com.allcode.coupit.repositories.UserRepository;
 import org.json.JSONObject;
@@ -10,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -67,6 +70,22 @@ public class ApplicationController {
         }
 
         return new ResponseEntity<User>(user, HttpStatus.OK);
+    }
+
+    @RequestMapping(value="/putSignedURL", method = RequestMethod.GET)
+    public ResponseEntity<?> putSignedURL(
+            @RequestParam String contentType
+    ) {
+
+        URL url = S3.putSignedURL(contentType);
+        if (url == null){
+            ErrorResponse error = new ErrorResponse("Error when try to connect to s3");
+            return new ResponseEntity<ErrorResponse>(error,HttpStatus.INTERNAL_SERVER_ERROR);//You many decide to return HttpStatus.NOT_FOUND
+        }
+
+        MessageResponse message = new MessageResponse(url.toString());
+        return new ResponseEntity<MessageResponse>(message,HttpStatus.OK);//You many decide to return HttpStatus.NOT_FOUND
+
     }
 
 }

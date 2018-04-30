@@ -2,14 +2,8 @@ package com.allcode.coupit.controllers;
 
 import com.allcode.coupit.handlers.ErrorResponse;
 import com.allcode.coupit.handlers.Utils;
-import com.allcode.coupit.models.Currency;
-import com.allcode.coupit.models.Merchant;
-import com.allcode.coupit.models.Product;
-import com.allcode.coupit.models.User;
-import com.allcode.coupit.repositories.CurrencyRepository;
-import com.allcode.coupit.repositories.MerchantRepository;
-import com.allcode.coupit.repositories.ProductRepository;
-import com.allcode.coupit.repositories.UserRepository;
+import com.allcode.coupit.models.*;
+import com.allcode.coupit.repositories.*;
 import com.allcode.coupit.services.UserService;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,6 +24,9 @@ public class ProductController {
 
     @Autowired
     private ProductRepository productRepository;
+
+    @Autowired
+    private ProductImageRepository productImageRepository;
 
     @Autowired
     private UserService userService;
@@ -96,6 +93,8 @@ public class ProductController {
         Long currencyId = null;
         String name = null;
         String description = null;
+        String awsKey = null;
+        String fileName = null;
         Double price = null;
 
         if(request.has("merchantId")) merchantId = request.getLong("merchantId");
@@ -103,8 +102,10 @@ public class ProductController {
         if(request.has("name")) name = request.getString("name");
         if(request.has("description")) description = request.getString("description");
         if(request.has("price")) price = request.getDouble("price");
+        if(request.has("awsKey")) awsKey = request.getString("awsKey");
+        if(request.has("fileName")) fileName = request.getString("fileName");
 
-        String[] fieldsToValidate = new String[] { "merchantId", "name", "description", "price", "currencyId" };
+        String[] fieldsToValidate = new String[] { "merchantId", "name","description", "price", "currencyId" };
         List<String> errors = this.validateProduct(null, merchantId, name, description, price, currencyId, fieldsToValidate);
         if(errors.size() == 0){
             User currentUser = userService.getCurrentUser();
@@ -132,6 +133,11 @@ public class ProductController {
                 return new ResponseEntity<ErrorResponse>(error, HttpStatus.BAD_REQUEST);
             }
             else{
+                ProductImage productImage = new ProductImage(fileName, awsKey, savedProduct);
+                ProductImage savedProductImage = productImageRepository.save(productImage);
+
+                savedProduct.setPrincipalImage(savedProductImage);
+                productRepository.save(product);
                 return new ResponseEntity<Product>(savedProduct, HttpStatus.CREATED);
             }
         }
@@ -151,11 +157,18 @@ public class ProductController {
         Long currencyId = null;
         String name = null;
         String description = null;
+        String awsKey = null;
+        String fileName = null;
         Double price = null;
 
         if(request.has("currencyId")){
             currencyId = request.getLong("currencyId");
         }
+
+
+        if(request.has("awsKey")) awsKey = request.getString("awsKey");
+
+        if(request.has("fileName")) fileName = request.getString("fileName");
 
         if(request.has("name")){
             name = request.getString("name");
@@ -220,6 +233,20 @@ public class ProductController {
                 ErrorResponse error = new ErrorResponse("Error when saving the product");
                 return new ResponseEntity<ErrorResponse>(error, HttpStatus.BAD_REQUEST);
             } else {
+
+                if(awsKey != null){
+                    ProductImage currentPrincipalImage = savedProduct.getPrincipalImage();
+                    if(currentPrincipalImage == null || !currentPrincipalImage.getAwsKey().equals(awsKey) ){
+                        ProductImage newPrincipalImage = productImageRepository.findByAwsKey(awsKey);
+                        if(newPrincipalImage == null){
+                            newPrincipalImage = new ProductImage(fileName, awsKey, savedProduct);
+                            newPrincipalImage = productImageRepository.save(newPrincipalImage);
+                        }
+                        savedProduct.setPrincipalImage(newPrincipalImage);
+                        productRepository.save(savedProduct);
+                    }
+                }
+
                 return new ResponseEntity<Product>(savedProduct, HttpStatus.CREATED);
             }
         }else{
