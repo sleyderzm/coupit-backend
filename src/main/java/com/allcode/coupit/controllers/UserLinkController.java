@@ -8,16 +8,16 @@ import com.allcode.coupit.models.UserLink;
 import com.allcode.coupit.repositories.UserLinkRepository;
 import com.allcode.coupit.repositories.UserRepository;
 import com.allcode.coupit.repositories.ProductRepository;
+import com.allcode.coupit.services.UserService;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.UUID;
+
+import java.util.*;
 
 @RestController
 @RequestMapping("/user_links")
@@ -36,12 +36,26 @@ public class UserLinkController {
     @Autowired
     private ProductRepository productRepository;
 
+    @Autowired
+    private UserService userService;
+
+    @GetMapping(path="/list")
+    public Iterable<UserLink> getPromotedProductByUser(
+            @RequestParam(required = false) Integer pageNumber,
+            @RequestParam(required = false) Integer pageSize
+    ){
+        User currentUser = userService.getCurrentUser();
+        if(pageNumber == null)pageNumber = 0;
+        if(pageSize == null)pageSize = 10;
+        return userLinkRepository.findByUserIn(currentUser,PageRequest.of(pageNumber, pageSize));
+    }
+
     @PostMapping(consumes=MediaType.APPLICATION_JSON_VALUE, produces=MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> createUserLink(@RequestBody String json) {
         // Post Params
         JSONObject request = new JSONObject(json);
-        long productId = request.getLong("product_id");
-        long userId = request.getLong("user_id");
+        long productId = request.getLong("productId");
+        long userId = request.getLong("userId");
         String[] fieldsToValidate = new String[] { "productId", "userId" };
         Long id = new Long(0);
         List<String> errors = this.validateUserLink(id, productId, userId, fieldsToValidate);
