@@ -138,11 +138,11 @@ public class UserController {
                 Pattern.compile("^[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,6}$", Pattern.CASE_INSENSITIVE);
 
         if(Arrays.asList(fieldsToValidate).contains("firstName")) {
-            if(firstName == null || firstName.equals("")){ errors.add("First Name can not be empty"); }
+            if(firstName == null || firstName.equals("")){ errors.add("First name can not be empty"); }
         }
 
         if(Arrays.asList(fieldsToValidate).contains("lastName")) {
-            if(lastName == null || lastName.equals("")){ errors.add("Last Name can not be empty"); }
+            if(lastName == null || lastName.equals("")){ errors.add("Last name can not be empty"); }
         }
 
         if(Arrays.asList(fieldsToValidate).contains("email")) {
@@ -155,7 +155,7 @@ public class UserController {
 
         if(Arrays.asList(fieldsToValidate).contains("password")) {
             if(password == null || password.equals("")){ errors.add("Password can not be empty"); }
-            else if(repeatPassword == null || repeatPassword.equals("")){ errors.add("Repeat Password can not be empty"); }
+            else if(repeatPassword == null || repeatPassword.equals("")){ errors.add("Repeat password can not be empty"); }
             else if(! password.equals(repeatPassword)) { errors.add("Passwords do not match"); }
         }
 
@@ -165,7 +165,7 @@ public class UserController {
                 errors.add("User not exists");
             }
         }
-        catch (Exception ex){ if(Arrays.asList(fieldsToValidate).contains("id")){ errors.add("User not exists"); } }
+        catch (Exception ex){ if(Arrays.asList(fieldsToValidate).contains("id")){ errors.add("User doesn't exist"); } }
 
         try{
             Role userRole = roleRepository.findById(roleId).get();
@@ -173,7 +173,7 @@ public class UserController {
                 errors.add("Role not exists");
             }
         }
-        catch (Exception ex){ if(Arrays.asList(fieldsToValidate).contains("roleId")){ errors.add("Role not exists"); } }
+        catch (Exception ex){ if(Arrays.asList(fieldsToValidate).contains("roleId")){ errors.add("Role doesn't exist"); } }
 
         return errors;
     }

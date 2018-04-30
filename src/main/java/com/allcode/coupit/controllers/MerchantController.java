@@ -66,7 +66,7 @@ public class MerchantController {
         User currentUser = userService.getCurrentUser();
 
         if(!merchant.hasPermission(currentUser)){
-            ErrorResponse error = new ErrorResponse("You have not permission");
+            ErrorResponse error = new ErrorResponse("You're not authorized");
             return new ResponseEntity<ErrorResponse>(error, HttpStatus.UNAUTHORIZED);
         }
 
@@ -133,7 +133,7 @@ public class MerchantController {
             Merchant merchant = merchantRepository.findById(id).get();
             User currentUser = userService.getCurrentUser();
             if(!merchant.hasPermission(currentUser)){
-                ErrorResponse error = new ErrorResponse("You have not Permission");
+                ErrorResponse error = new ErrorResponse("You're not authorized");
                 return new ResponseEntity<ErrorResponse>(error, HttpStatus.UNAUTHORIZED);
             }
 
@@ -170,9 +170,9 @@ public class MerchantController {
         List<String> errors = new ArrayList<>();
 
         if(Arrays.asList(fieldsToValidate).contains("merchantType")) {
-            if(merchantType == null || merchantType.equals("")){ errors.add("Merchant Type can not be empty"); }
+            if(merchantType == null || merchantType.equals("")){ errors.add("Merchant type can not be empty"); }
             else if(! Merchant.PERSON_COMPANY_TYPE.equals(merchantType)
-                    && ! Merchant.PERSON_MERCHANT_TYPE.equals(merchantType)){ errors.add("Merchant Type is not valid"); }
+                    && ! Merchant.PERSON_MERCHANT_TYPE.equals(merchantType)){ errors.add("Merchant type is not valid"); }
         }
 
         if(Arrays.asList(fieldsToValidate).contains("name")) {
@@ -187,8 +187,8 @@ public class MerchantController {
         }
 
         if(Arrays.asList(fieldsToValidate).contains("websiteUrl")) {
-            if(websiteUrl == null || websiteUrl.equals("")){ errors.add("Website Url can not be empty"); }
-            else if(!Utils.isValidURL(websiteUrl)){ errors.add("Website Url is not valid"); }
+            if(websiteUrl == null || websiteUrl.equals("")){ errors.add("Website url can not be empty"); }
+            else if(!Utils.isValidURL(websiteUrl)){ errors.add("Website url is not valid"); }
         }
 
         return errors;

@@ -128,9 +128,6 @@ public class BlockchainController {
                 }
             }catch (Exception ex){  errors.add("Blockchain not exists"); }
         }
-
-
-
         return errors;
     }
 }
