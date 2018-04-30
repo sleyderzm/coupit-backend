@@ -61,8 +61,8 @@ public class Purchase {
     private Date createdAt;
 
     @JsonBackReference
-    @OneToMany(mappedBy="user",fetch = FetchType.LAZY)
-    private Set<Transaction> purchase;
+    @OneToMany(mappedBy="purchase",fetch = FetchType.LAZY)
+    private Set<Transaction> transactions;
 
     @Transient
     private Double productPrice;
