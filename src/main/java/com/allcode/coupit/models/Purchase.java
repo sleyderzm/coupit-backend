@@ -77,23 +77,6 @@ public class Purchase {
     public Purchase() {
     }
 
-    public Purchase(UserLink userLink, User user, Product product, Merchant merchant, Currency currency, String merchantType, String merchantName, String productName, Long productPriceLong, String productDescription, Integer amount, @NotNull Date createdAt, Set<Transaction> purchase, Double productPrice) {
-        this.userLink = userLink;
-        this.user = user;
-        this.product = product;
-        this.merchant = merchant;
-        this.currency = currency;
-        this.merchantType = merchantType;
-        this.merchantName = merchantName;
-        this.productName = productName;
-        this.productPriceLong = productPriceLong;
-        this.productDescription = productDescription;
-        this.amount = amount;
-        this.createdAt = createdAt;
-        this.purchase = purchase;
-        this.productPrice = productPrice;
-    }
-
     public Purchase(UserLink userLink, User user, Product product, Merchant merchant, Currency currency, String merchantType,String merchantName, String productName, Double productPrice, String productDescription, Integer amount) {
         this.userLink = userLink;
         this.user = user;
