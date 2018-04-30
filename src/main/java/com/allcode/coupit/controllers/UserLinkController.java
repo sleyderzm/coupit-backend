@@ -54,8 +54,9 @@ public class UserLinkController {
     public ResponseEntity<?> createUserLink(@RequestBody String json) {
         // Post Params
         JSONObject request = new JSONObject(json);
+        User currentUser = userService.getCurrentUser();
         long productId = request.getLong("productId");
-        long userId = request.getLong("userId");
+        long userId = currentUser.getId();
         String[] fieldsToValidate = new String[] { "productId", "userId" };
         Long id = new Long(0);
         List<String> errors = this.validateUserLink(id, productId, userId, fieldsToValidate);
@@ -91,7 +92,8 @@ public class UserLinkController {
                 errors.add("User not exists");
             }
         }
-        catch (Exception ex){ if(Arrays.asList(fieldsToValidate).contains("userId")){ errors.add("User not exists"); } }
+        catch (Exception ex){ if(Arrays.asList(fieldsToValidate).contains("userId")){ errors.add("User doesn't exist"); } }
+
 
         try{
             Product product = productRepository.findById(productId).get();
@@ -99,8 +101,7 @@ public class UserLinkController {
                 errors.add("Product not exists");
             }
         }
-        catch (Exception ex){ if(Arrays.asList(fieldsToValidate).contains("productId")){ errors.add("Product not exists"); } }
-
+        catch (Exception ex){ if(Arrays.asList(fieldsToValidate).contains("productId")){ errors.add("Product doesn't exist"); } }
 
         return errors;
     }

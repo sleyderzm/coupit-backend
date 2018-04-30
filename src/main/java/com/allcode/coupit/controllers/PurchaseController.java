@@ -5,6 +5,7 @@ import com.allcode.coupit.handlers.MessageResponse;
 import com.allcode.coupit.handlers.Utils;
 import com.allcode.coupit.models.*;
 import com.allcode.coupit.repositories.*;
+import com.allcode.coupit.services.UserService;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -36,6 +37,9 @@ public class PurchaseController {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private UserService userService;
+
     @GetMapping(produces=MediaType.APPLICATION_JSON_VALUE)
     public Iterable<Purchase> getPurchases(){ return purchaseRepository.findAll(); }
 
@@ -43,6 +47,7 @@ public class PurchaseController {
     public ResponseEntity<?> createPurchase(@RequestBody String json) {
         // Post Params
         JSONObject request = new JSONObject(json);
+        User currentUser = userService.getCurrentUser();
 
         String uid = null;
         if(request.has("uid")){ uid = request.getString("uid"); }
@@ -50,8 +55,7 @@ public class PurchaseController {
         Long productId = null;
         if(request.has("product_id")){ productId = request.getLong("product_id"); }
 
-        Long userId = null;
-        if(request.has("user_id")){ userId = request.getLong("user_id"); }
+        Long userId = currentUser.getId();
 
         Integer amount = null;
         if(request.has("amount")){ amount = request.getInt("amount"); }
@@ -72,7 +76,6 @@ public class PurchaseController {
             product = userLink.getProduct();
         }
 
-        User user = userRepository.findById(userId).get();
         Merchant merchant = product.getMerchant();
         String merchantType = merchant.getMerchantType();
         String merchantName = merchant.getName();
@@ -81,7 +84,7 @@ public class PurchaseController {
         String productDescription = product.getDescription();
         Double productPrice = product.getPrice();
 
-        Purchase purchase = new Purchase(userLink, user, product, merchant, currency,merchantType,merchantName, productName, productPrice, productDescription, amount);
+        Purchase purchase = new Purchase(userLink, currentUser, product, merchant, currency,merchantType,merchantName, productName, productPrice, productDescription, amount);
         Purchase savedPurchase = purchaseRepository.save(purchase);
 
         if(savedPurchase.getId() == null) {
@@ -122,9 +125,9 @@ public class PurchaseController {
             try{
                 Purchase purchase = purchaseRepository.findById(id).get();
                 if (purchase == null){
-                    errors.add("Purchase not exists");
+                    errors.add("Purchase doesn't exist");
                 }
-            }catch (Exception ex){  errors.add("Purchase not exists"); }
+            }catch (Exception ex){  errors.add("Purchase doesn't exist"); }
         }
 
         if(Arrays.asList(fieldsToValidate).contains("uid")) {
@@ -151,7 +154,6 @@ public class PurchaseController {
                 }
             }catch (Exception ex){  errors.add("User is not valid"); }
         }
-
         return errors;
     }
 }

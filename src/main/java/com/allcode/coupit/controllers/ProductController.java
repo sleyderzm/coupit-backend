@@ -81,7 +81,7 @@ public class ProductController {
         User currentUser = userService.getCurrentUser();
 
         if(!product.hasPermission(currentUser)){
-            ErrorResponse error = new ErrorResponse("You have not permission");
+            ErrorResponse error = new ErrorResponse("You're not authorized");
             return new ResponseEntity<ErrorResponse>(error, HttpStatus.UNAUTHORIZED);
         }
 
@@ -111,7 +111,7 @@ public class ProductController {
 
             Merchant merchant = merchantRepository.findById(merchantId).get();
             if (!merchant.hasPermission(currentUser)){
-                ErrorResponse error = new ErrorResponse("You have not permission");
+                ErrorResponse error = new ErrorResponse("You're not authorized");
                 return new ResponseEntity<ErrorResponse>(error, HttpStatus.UNAUTHORIZED);
             }
 
@@ -178,12 +178,12 @@ public class ProductController {
                     product = productRepository.findById(id).get();
 
                     if(!product.hasPermission(currentUser)){
-                        ErrorResponse error = new ErrorResponse("You have not Permission");
+                        ErrorResponse error = new ErrorResponse("You're not authorized");
                         return new ResponseEntity<ErrorResponse>(error, HttpStatus.UNAUTHORIZED);
                     }
 
                 }catch (Exception e) {
-                    ErrorResponse error = new ErrorResponse("Product not Exists");
+                    ErrorResponse error = new ErrorResponse("Product doesn't exist");
                     return new ResponseEntity<ErrorResponse>(error, HttpStatus.UNAUTHORIZED);
                 }
 
@@ -193,7 +193,7 @@ public class ProductController {
                     currency = currencyRepository.findById(currencyId).get();
                     product.setCurrency(currency);
                 }catch (Exception e){
-                    ErrorResponse error = new ErrorResponse("Currency not Exists");
+                    ErrorResponse error = new ErrorResponse("Currency doesn't exist");
                     return new ResponseEntity<ErrorResponse>(error, HttpStatus.UNAUTHORIZED);
                 }
             }
@@ -247,21 +247,21 @@ public class ProductController {
             try{
                 Product product = productRepository.findById(id).get();
             }
-            catch (Exception ex){ errors.add("Product not exists"); }
+            catch (Exception ex){ errors.add("Product doesn't exist"); }
         }
 
         if(Arrays.asList(fieldsToValidate).contains("merchantId")){
             try{
                 Merchant merchant = merchantRepository.findById(merchantId).get();
             }
-            catch (Exception ex){ errors.add("Merchant not exists"); }
+            catch (Exception ex){ errors.add("Merchant doesn't exist"); }
         }
 
         if(Arrays.asList(fieldsToValidate).contains("currencyId")){
             try{
                 Currency currency = currencyRepository.findById(currencyId).get();
             }
-            catch (Exception ex){ errors.add("Currency not exists"); }
+            catch (Exception ex){ errors.add("Currency doesn't exist"); }
         }
 
         return errors;
